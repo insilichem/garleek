@@ -4,7 +4,9 @@
 Garleek
 """
 
+from __future__ import print_function, division
 import os
+import sys
 from collections import OrderedDict
 from distutils.spawn import find_executable
 from subprocess import check_output
@@ -12,9 +14,9 @@ from tempfile import NamedTemporaryFile
 import numpy as np
 
 
-tinker_testhess = find_executable('testhess')
-tinker_analyze = os.path.join(os.path.dirname(tinker_testhess), 'analyze')
-tinker_testgrad = os.path.join(os.path.dirname(tinker_testhess), 'testgrad')
+tinker_testhess = find_executable('tinker_testhess')
+tinker_analyze = find_executable('tinker_analyze')
+tinker_testgrad = find_executable('tinker_testgrad')
 
 
 #########################################################
