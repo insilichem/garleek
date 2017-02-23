@@ -4,13 +4,37 @@
 Garleek
 """
 
+import os
 from collections import OrderedDict
 from distutils.spawn import find_executable
 from subprocess import check_output
+from tempfile import NamedTemporaryFile
+import numpy as np
+
 
 tinker_analyze = find_executable('analyze')
 tinker_testgrad = find_executable('testgrad')
 tinker_testhess = find_executable('testhess')
+
+
+# xyz units conversion
+RBOHR_TO_AMSTRONG = 0.52917720859
+
+# Energy units conversion
+HARTREE_TO_KCALMOL = 627.509391
+KCALMOL_TO_HARTREE = 1/HARTREE_TO_KCALMOL
+
+# Gradients units conversion
+HARTREEBOHR_TO_KCALMOLEANGSTROM = 1185.820894904
+KCALMOLEANGSTROM_TO_HARTREEBOHR = 1/HARTREEBOHR_TO_KCALMOLEANGSTROM
+
+# Hessian units conversion
+HARTREEBOHRSQ_TO_KCALMOLEANGSTROMSQ = 2240.876733833
+KCALMOLEANGSTROMSQ_TO_HARTREEBOHRSQ = 1/HARTREEBOHRSQ_TO_KCALMOLEANGSTROMSQ
+
+# Dipole units conversion
+DEBYES_TO_EBOHR = 0.393430307
+EBOHR_TO_DEBYES = 1/DEBYES_TO_EBOHR
 
 
 #########################################################
@@ -21,8 +45,15 @@ tinker_testhess = find_executable('testhess')
 
 
 def parse_atom_types(atom_types_filename):
-    pass
-
+    d = {}
+    with open(atom_types_filename) as f:
+        for line in f:
+            line = line.strip()
+            if not line or line.startswith('#'):
+                continue 
+            fields = line.split('#', 1)[0].split()
+            d[fields[0]] = fields[1]
+    return d
 
 #########################################################
 #
@@ -56,9 +87,9 @@ def parse_gaussian_EIn(ein_filename):
             atom_element = fields[0]
             atom_type = fields[5] if len(fields) == 6 else None
             x, y, z, mm_charge = map(float, fields[1:5])
-            atoms[i] = {'element': atom_element, 
+            atoms[i] = {'element': 'E'+atom_element, 
                         'type': atom_type, 
-                        'xyz': (x, y, z),
+                        'xyz': np.array([x, y, z]),
                         'mm_charge': mm_charge}
             i, line = i+1, next(f)
 
@@ -79,8 +110,8 @@ def parse_gaussian_EIn(ein_filename):
             'bonds': bonds}
 
 
-def prepare_gaussian_EOu(energy, dipole_moment, gradients=None, 
-                         polarizability=None, hessian=None, force_constants=None):
+def prepare_gaussian_EOu(n_atoms, energy, dipole_moment, gradients=None, hessian=None,
+                         polarizability=None, dipole_polarizability=None):
     """
     Generate the `*.EOu` file Gaussian expects after `external` launch.
 
@@ -96,7 +127,23 @@ def prepare_gaussian_EOu(energy, dipole_moment, gradients=None,
     dipole derivatives           DDip(I), I=1,9*NAtoms                  3D20.12
     force constants              FFX(I), I=1,(3*NAtoms*(3*NAtoms+1))/2  3D20.12
     """
-    pass
+    lines = [[energy] + list(dipole_moment)]
+    template = '{: 20.12E}'
+    if gradients is not None:
+        for gradient in gradients:
+            lines.append(gradient)
+    if hessian is not None:
+        if polarizability is None:
+            polarizability = np.zeros(6)
+        if dipole_polarizability is None:
+            dipole_polarizability = np.zeros(9*n_atoms)
+        for i in range(0, polarizability.size, 3):
+            lines.append(polarizability[i:i+3])
+        for i in range(0, dipole_polarizability.size, 3):
+            lines.append(dipole_polarizability[i:i+3])
+        for i in range(0, hessian.size, 3):
+            lines.append(hessian[i:i+3])
+    return '\n'.join([(template*len(line)).format(*line) for line in lines])
 
 
 #########################################################
@@ -112,44 +159,129 @@ def prepare_tinker_xyz(atoms, bonds, atom_types=None):
     out = [str(len(atoms))]
     for index, atom in atoms.iteritems():
         line = ([index, atom['element']] + 
-                list(atom['xyz']) + 
+                (atom['xyz'] * RBOHR_TO_AMSTRONG).tolist() + 
                 [atom_types.get(atom['type'], atom['type'])] +
-                [bonded_to for (bonded_to, bond_index) in bonds[index]])
+                [bonded_to for (bonded_to, bond_index) in bonds[index]
+                 if bond_index >= 0.5])
         out.append(' '.join(map(str, line)))
     return '\n'.join(out)
 
 
 def _parse_tinker_analyze(data):
-    pass
+    """
+    Takes the output of TINKER's `analyze` program and obtain
+    the potential energy (kcal/mole) and the dipole x, y, z 
+    components (debyes).
+
+
+    """
+    energy, dipole = None, None
+    lines = data.splitlines()
+    for line in lines:
+        line = line.strip()
+        if line.startswith('Total Potential Energy'):
+            energy = float(line.split()[4])
+        elif line.startswith('Dipole X,Y,Z-Components'):
+            dipole = map(float, line.split()[3:6])
+            break
+    return energy, np.array(dipole)
 
 
 def _parse_tinker_testgrad(data):
-    pass
+    """
+
+    """
+    gradients = []
+    lines = data.splitlines()
+    for i, line in enumerate(lines):
+        line = line.strip()
+        if line.startswith('Cartesian Gradient Breakdown over Individual Atoms'):
+            break
+
+    for line in lines[i+4:]:
+        line = line.strip()
+        if not line or line.startswith('Total Gradient'):
+            break
+        fields = line.split()
+        gradients.append(map(float, fields[2:5]))
+
+    return np.array(gradients)
+
+def _parse_tinker_testhess(data, n_atoms):
+    """
+    
+    """
+    hesfile = data.splitlines()[-1].split(':')[-1].strip()
+    hessian = np.zeros((n_atoms * 3, n_atoms * 3))
+    xyz_to_int = {'X': 0, 'Y': 1, 'Z': 2}
+    with open(hesfile) as lines:
+        for line in lines:
+            line = line.strip()
+            if not line:
+                continue
+            elif line.startswith('Diagonal'):
+                _, line = next(lines), next(lines).strip()  # skip blank line
+                block = []
+                while line:
+                    block.append(line)
+                    line = next(lines).strip()
+                nums = map(float, ' '.join(block).split())
+                for i, num in enumerate(nums):
+                    hessian[i,i] = num
+            elif line.startswith('Off-diagonal'):
+                fields = line.split()
+                atom_pos, axis_pos = int(fields[-2])-1, xyz_to_int[fields[-1]]
+                _, line = next(lines), next(lines).strip()  # skip blank line
+                block = []
+                while line:
+                    block.append(line)
+                    try:
+                        line = next(lines).strip()
+                    except StopIteration:
+                        break
+                nums = map(float, ' '.join(block).split())
+                j = 3*atom_pos+axis_pos
+                for i, num in enumerate(nums):
+                    hessian[i+j+1, j] = num
+    os.remove(hesfile)
+    return hessian
 
 
-def _parse_tinker_testhess(data):
-    pass
-
-
-def run_tinker(xyz, energy=True, dipole_moment=True, gradients=True, hessian=True):
+def run_tinker(xyz_data, n_atoms, energy=True, dipole_moment=True,
+               gradients=True, hessian=True, forcefield='mmff.prm'):
+    error = 'Could not obtain {}! Command run:\n  {}\n\nTINKER output:\n{}'
+    ff = os.path.join(os.path.dirname(tinker_analyze), forcefield)
+    with NamedTemporaryFile(suffix='.xyz', delete=False) as f:
+        f.write(xyz_data)
+        xyz = f.name
     results = {}
     if energy or dipole_moment:
         args = ','.join(['E' if energy else '', 'M' if dipole_moment else ''])
-        tinker_analyze_out = check_output([tinker_analyze, xyz, args])
-        energy, dipole = _parse_tinker_analyze(tinker_analyze_out)
+        command = [tinker_analyze, xyz, ff, args]
+        output = check_output(command)
+        energy, dipole = _parse_tinker_analyze(output)
+        if energy is None:
+            raise ValueError(error.format('energy', ' '.join(command), output))
         results['energy'] = energy
+        if dipole is None:
+            raise ValueError(error.format('dipole', ' '.join(command), output))
         results['dipole_moment'] = dipole
 
     if gradients:
-        tinker_testgrad_out = check_output([tinker_testgrad, xyz, 'y', 'n', '0.1D-04'])
-        gradients = _parse_tinker_testgrad(tinker_testgrad_out)
+        output = check_output([tinker_testgrad, xyz, ff, 'y', 'n', '0.1D-04'])
+        gradients = _parse_tinker_testgrad(output)
+        if gradients is None:
+            raise ValueError(error.format('gradients', ' '.join(command), output))
         results['gradients'] = gradients
 
     if hessian:
-        tinker_testhess_out = check_output([tinker_testhess, xyz, 'y', 'n '])
-        hessian = _parse_tinker_testhess(tinker_testhess_out)
+        output = check_output([tinker_testhess, xyz, ff, 'y', 'n'])
+        hessian = _parse_tinker_testhess(output, n_atoms)
+        if hessian is None:
+            raise ValueError(error.format('hessian', ' '.join(command), output))
         results['hessian'] = hessian
 
+    f.unlink(xyz)
     return results
 
 
@@ -159,13 +291,33 @@ def run_tinker(xyz, energy=True, dipole_moment=True, gradients=True, hessian=Tru
 #
 #########################################################
 
-def gaussian_tinker(ein_filename, atom_types=None):
-    ein = parse_gaussian_EIn(ein_filename)
+
+def gaussian_tinker(ein_filename, atom_types=None, forcefield=None, write_file=True):   
+    # Defaults
     if atom_types is not None:
         atom_types = parse_atom_types(atom_types)
-    xyz = prepare_tinker_xyz(ein['atoms'], ein['bonds'], 
-                             atom_types=atom_types)
-    mm = run_tinker(xyz, energy=True, dipole_moment=True,
-                    gradients=ein['derivatives'] > 1, 
-                    hessian=ein['derivatives'] == 2)
-    prepare_gaussian_EOu(**mm)
+    if forcefield is None:
+        forcefield = 'mmff.prm'
+    # Gaussian Input
+    ein = parse_gaussian_EIn(ein_filename)
+    # TINKER inputs
+    xyz = prepare_tinker_xyz(ein['atoms'], ein['bonds'], atom_types=atom_types)
+    with_gradients = ein['derivatives'] > 0
+    with_hessian = ein['derivatives'] == 2
+    mm = run_tinker(xyz, n_atoms=ein['n_atoms'], energy=True, dipole_moment=True, 
+                    gradients=with_gradients, hessian=with_hessian, forcefield=forcefield)
+    # Unit conversion from Tinker to Gaussian
+    mm['energy'] = mm['energy'] * KCALMOL_TO_HARTREE
+    mm['dipole_moment'] = mm['dipole_moment'] * DEBYES_TO_EBOHR
+    if with_gradients:
+        mm['gradients'] = mm['gradients'] * KCALMOLEANGSTROM_TO_HARTREEBOHR
+    if with_hessian:
+        mm['hessian'] = mm['hessian'][np.tril_indices(15)] * KCALMOLEANGSTROMSQ_TO_HARTREEBOHRSQ
+    # Generate files requested by Gaussian
+    eou_data = prepare_gaussian_EOu(ein['n_atoms'], **mm)
+    if write_file:
+        eou_filename = os.path.splitext(ein_filename)[0] + '.EOu'
+        with open(eou_filename, mode='w') as f:
+            f.write(eou_data)
+    return eou_data
+
