@@ -297,7 +297,8 @@ def run_tinker(xyz_data, n_atoms, energy=True, dipole_moment=True,
 #########################################################
 
 
-def gaussian_tinker(ein_filename, atom_types=None, forcefield=None, write_file=True):
+def gaussian_tinker(ein_filename, eou_filename=None, atom_types=None, 
+                    forcefield=None, write_file=True):
     # Defaults
     if atom_types is not None:
         atom_types = parse_atom_types(atom_types)
@@ -317,11 +318,25 @@ def gaussian_tinker(ein_filename, atom_types=None, forcefield=None, write_file=T
     if with_gradients:
         mm['gradients'] = mm['gradients'] * KCALMOLEANGSTROM_TO_HARTREEBOHR
     if with_hessian:
-        mm['hessian'] = mm['hessian'][np.tril_indices(15)] * KCALMOLEANGSTROMSQ_TO_HARTREEBOHRSQ
+        mm['hessian'] = mm['hessian'][np.tril_indices(ein['n_atoms']*3)] * KCALMOLEANGSTROMSQ_TO_HARTREEBOHRSQ
     # Generate files requested by Gaussian
     eou_data = prepare_gaussian_EOu(ein['n_atoms'], **mm)
     if write_file:
-        eou_filename = os.path.splitext(ein_filename)[0] + '.EOu'
+        if eou_filename is None:
+            eou_filename = os.path.splitext(ein_filename)[0] + '.EOu'
         with open(eou_filename, mode='w') as f:
             f.write(eou_data)
     return eou_data
+
+
+def gaussian_entry_point(*args):
+    layer, input_file, output_file, msg_file, fchk_file, matel_file = args[-6:]
+    atom_types, forcefield = None, None
+    if len(args[1:-6]) == 2:
+        atom_types, forcefield = args[1:3]
+    gaussian_tinker(input_file, eou_filename=output_file, 
+                    atom_types=atom_types, forcefield=forcefield)
+
+
+if __name__ == "__main__":
+    gaussian_entry_point(*sys.argv)
