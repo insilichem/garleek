@@ -254,7 +254,8 @@ def _parse_tinker_testhess(data, n_atoms):
 def run_tinker(xyz_data, n_atoms, energy=True, dipole_moment=True,
                gradients=True, hessian=True, forcefield='mmff.prm'):
     error = 'Could not obtain {}! Command run:\n  {}\n\nTINKER output:\n{}'
-    ff = os.path.join(os.path.dirname(tinker_analyze), forcefield)
+    # ff = os.path.join(os.path.dirname(tinker_analyze), forcefield)
+    ff = forcefield
     with NamedTemporaryFile(suffix='.xyz', delete=False) as f:
         f.write(xyz_data)
         xyz = f.name
