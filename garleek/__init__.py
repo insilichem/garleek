@@ -11,16 +11,22 @@ from subprocess import check_output
 from tempfile import NamedTemporaryFile
 import numpy as np
 
-# tinker_analyze = find_executable('analyze')
-# tinker_testgrad = find_executable('testgrad')
-# tinker_testhess = find_executable('testhess')
 
-tinker_analyze = '/home/jrodriguez/dev/garleek/sictwo/oldsrc/analyze'
-tinker_testgrad = '/home/jrodriguez/dev/garleek/sictwo/oldsrc/testgrad'
-tinker_testhess = '/home/jrodriguez/dev/garleek/sictwo/oldsrc/testhess'
+tinker_testhess = find_executable('testhess')
+tinker_analyze = os.path.join(os.path.dirname(tinker_testhess), 'analyze')
+tinker_testgrad = os.path.join(os.path.dirname(tinker_testhess), 'testgrad')
 
-# xyz units conversion
-RBOHR_TO_AMSTRONG = 0.52917720859
+
+#########################################################
+#
+# Generalities
+#
+#########################################################
+
+
+# XYZ units conversion
+RBOHR_TO_ANGSTROM = 0.52917720859
+ANGSTROM_TO_RBOHR = 1/RBOHR_TO_ANGSTROM
 
 # Energy units conversion
 HARTREE_TO_KCALMOL = 627.509391
@@ -39,20 +45,13 @@ DEBYES_TO_EBOHR = 0.393430307
 EBOHR_TO_DEBYES = 1/DEBYES_TO_EBOHR
 
 
-#########################################################
-#
-# Generalities
-#
-#########################################################
-
-
 def parse_atom_types(atom_types_filename):
     d = {}
     with open(atom_types_filename) as f:
         for line in f:
             line = line.strip()
             if not line or line.startswith('#'):
-                continue 
+                continue
             fields = line.split('#', 1)[0].split()
             d[fields[0]] = fields[1]
     return d
@@ -89,13 +88,13 @@ def parse_gaussian_EIn(ein_filename):
             atom_element = fields[0]
             atom_type = fields[5] if len(fields) == 6 else None
             x, y, z, mm_charge = map(float, fields[1:5])
-            atoms[i] = {'element': 'E'+atom_element, 
-                        'type': atom_type, 
+            atoms[i] = {'element': 'E'+atom_element,
+                        'type': atom_type,
                         'xyz': np.array([x, y, z]),
                         'mm_charge': mm_charge}
             i, line = i+1, next(f)
 
-        line = next(f) # Skip the "connectivity" header
+        line = next(f)  # Skip the "connectivity" header
         bonds = OrderedDict()
         while line.strip():
             fields = line.strip().split()
@@ -160,8 +159,8 @@ def prepare_tinker_xyz(atoms, bonds, atom_types=None):
         atom_types = {}
     out = [str(len(atoms))]
     for index, atom in atoms.iteritems():
-        line = ([index, atom['element']] + 
-                (atom['xyz'] * RBOHR_TO_AMSTRONG).tolist() + 
+        line = ([index, atom['element']] +
+                (atom['xyz'] * RBOHR_TO_ANGSTROM).tolist() +
                 [atom_types.get(atom['type'], atom['type'])] +
                 [bonded_to for (bonded_to, bond_index) in bonds[index]
                  if bond_index >= 0.5])
@@ -174,8 +173,6 @@ def _parse_tinker_analyze(data):
     Takes the output of TINKER's `analyze` program and obtain
     the potential energy (kcal/mole) and the dipole x, y, z 
     components (debyes).
-
-
     """
     energy, dipole = None, None
     lines = data.splitlines()
@@ -209,9 +206,10 @@ def _parse_tinker_testgrad(data):
 
     return np.array(gradients)
 
+
 def _parse_tinker_testhess(data, n_atoms):
     """
-    
+
     """
     hesfile = data.splitlines()[-1].split(':')[-1].strip()
     hessian = np.zeros((n_atoms * 3, n_atoms * 3))
@@ -229,7 +227,7 @@ def _parse_tinker_testhess(data, n_atoms):
                     line = next(lines).strip()
                 nums = map(float, ' '.join(block).split())
                 for i, num in enumerate(nums):
-                    hessian[i,i] = num
+                    hessian[i, i] = num
             elif line.startswith('Off-diagonal'):
                 fields = line.split()
                 atom_pos, axis_pos = int(fields[-2])-1, xyz_to_int[fields[-1]]
@@ -294,7 +292,7 @@ def run_tinker(xyz_data, n_atoms, energy=True, dipole_moment=True,
 #########################################################
 
 
-def gaussian_tinker(ein_filename, atom_types=None, forcefield=None, write_file=True):   
+def gaussian_tinker(ein_filename, atom_types=None, forcefield=None, write_file=True):
     # Defaults
     if atom_types is not None:
         atom_types = parse_atom_types(atom_types)
@@ -306,7 +304,7 @@ def gaussian_tinker(ein_filename, atom_types=None, forcefield=None, write_file=T
     xyz = prepare_tinker_xyz(ein['atoms'], ein['bonds'], atom_types=atom_types)
     with_gradients = ein['derivatives'] > 0
     with_hessian = ein['derivatives'] == 2
-    mm = run_tinker(xyz, n_atoms=ein['n_atoms'], energy=True, dipole_moment=True, 
+    mm = run_tinker(xyz, n_atoms=ein['n_atoms'], energy=True, dipole_moment=True,
                     gradients=with_gradients, hessian=with_hessian, forcefield=forcefield)
     # Unit conversion from Tinker to Gaussian
     mm['energy'] = mm['energy'] * KCALMOL_TO_HARTREE
@@ -322,4 +320,3 @@ def gaussian_tinker(ein_filename, atom_types=None, forcefield=None, write_file=T
         with open(eou_filename, mode='w') as f:
             f.write(eou_data)
     return eou_data
-
