@@ -84,19 +84,19 @@ def parse_gaussian_EIn(ein_filename):
     with open(ein_filename) as f:
         n_atoms, derivatives, charge, spin = map(int, next(f).split())
         atoms = OrderedDict()
-        i, line = 1, next(f)
-        while not line.strip().startswith('Connectivity'):
-            fields = line.strip().split()
+        for i in range(n_atoms):
+            fields = next(f).strip().split()
             atom_element = fields[0]
             atom_type = fields[5] if len(fields) == 6 else None
             x, y, z, mm_charge = map(float, fields[1:5])
-            atoms[i] = {'element': 'E'+atom_element,
-                        'type': atom_type,
-                        'xyz': np.array([x, y, z]),
-                        'mm_charge': mm_charge}
-            i, line = i+1, next(f)
-
+            atoms[i+1] = {'element': 'E'+atom_element,
+                          'type': atom_type,
+                          'xyz': np.array([x, y, z]),
+                          'mm_charge': mm_charge}
+            
         line = next(f)  # Skip the "connectivity" header
+        if 'connectivity'  in line.strip().lower():
+            line = next(f)
         bonds = OrderedDict()
         while line.strip():
             fields = line.strip().split()
