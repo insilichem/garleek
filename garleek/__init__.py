@@ -131,7 +131,7 @@ def prepare_gaussian_EOu(n_atoms, energy, dipole_moment, gradients=None, hessian
     force constants              FFX(I), I=1,(3*NAtoms*(3*NAtoms+1))/2  3D20.12
     """
     lines = [[energy] + list(dipole_moment)]
-    template = '{: 20.12E}'
+    template = '{: 20.12e}'
     if gradients is not None:
         for gradient in gradients:
             lines.append(gradient)
@@ -144,8 +144,10 @@ def prepare_gaussian_EOu(n_atoms, energy, dipole_moment, gradients=None, hessian
             lines.append(polarizability[i:i+3])
         for i in range(0, dipole_polarizability.size, 3):
             lines.append(dipole_polarizability[i:i+3])
+        
         for i in range(0, hessian.size, 3):
             lines.append(hessian[i:i+3])
+    lines.append([])  # Gaussian is very peculiar about blank lines
     return '\n'.join([(template*len(line)).format(*line) for line in lines])
 
 
