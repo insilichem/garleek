@@ -162,7 +162,7 @@ def prepare_tinker_xyz(atoms, bonds, atom_types=None):
     if atom_types is None:
         atom_types = {}
     out = [str(len(atoms))]
-    for index, atom in atoms.iteritems():
+    for index, atom in atoms.items():
         line = ([index, atom['element']] +
                 (atom['xyz'] * RBOHR_TO_ANGSTROM).tolist() +
                 [atom_types.get(atom['type'], atom['type'])] +
