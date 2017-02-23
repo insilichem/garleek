@@ -286,7 +286,7 @@ def run_tinker(xyz_data, n_atoms, energy=True, dipole_moment=True,
             raise ValueError(error.format('hessian', ' '.join(command), output))
         results['hessian'] = hessian
 
-    f.unlink(xyz)
+    os.remove(xyz)
     return results
 
 
