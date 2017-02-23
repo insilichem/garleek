@@ -11,11 +11,13 @@ from subprocess import check_output
 from tempfile import NamedTemporaryFile
 import numpy as np
 
+# tinker_analyze = find_executable('analyze')
+# tinker_testgrad = find_executable('testgrad')
+# tinker_testhess = find_executable('testhess')
 
-tinker_analyze = find_executable('analyze')
-tinker_testgrad = find_executable('testgrad')
-tinker_testhess = find_executable('testhess')
-
+tinker_analyze = '/home/jrodriguez/dev/garleek/sictwo/oldsrc/analyze'
+tinker_testgrad = '/home/jrodriguez/dev/garleek/sictwo/oldsrc/testgrad'
+tinker_testhess = '/home/jrodriguez/dev/garleek/sictwo/oldsrc/testhess'
 
 # xyz units conversion
 RBOHR_TO_AMSTRONG = 0.52917720859

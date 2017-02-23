@@ -1,4 +1,5 @@
 # atomic number, mm3 type, description
+
 1          5            # H_norm
 2          51           # He
 3          163          # Li
@@ -14,7 +15,7 @@
 13         167          # Al
 14         19           # Si
 15         25           # P_phosphine
-16         15           # S_sufide
+16         15           # S_sulfide
 17         12           # Cl
 18         53           # Ar
 19         168          # K
@@ -106,144 +107,147 @@
 
 # MM3 no metal elements (C,H,O,N,halogens,S,P,B,Si,Se,noble gases)
 
-C_3        1            # (Csp3)  
-C_22       22           # (cyclopropane C)
-C_56       56           # (cyclobutane C)
-C_2        2            # (Csp2) 
-C_3C       3            # (C carbonyl)
-C_29       29           # (radical C)
-C_30       30           # (carbonium ion)
-C_38       38           # (cyclopropene C)
-C_57       57           # (cyclobutene C)
-C_113      113          # (Cferrocene-H)
-C_114      114          # (Cferrocene-C)
-C_R        2            # (Carom)
-C_50       50           # (benzene (localized) C)
-C_58       58           # (cyclobutanone C)
-C_67       67           # (cyclopropanone C)
-C_71       71           # (ketonium C)
-C_1        4            # (C sp) 
-C_68       68           # (allene C)
-C_106      106          # (ketene C)
-H_         5            # (normal terminal H)   
-H_21       21           # (O-H alcohol H)
-H_23       23           # (NH amine/imine H)
-H_24       24           # (COOH carboxyl H) 
-H_28       28           # (N-H amide H) 
-H_36       36           # (deuterium D)
-H_44       44           # (SH thiol H)
-H_48       48           # (ammonium H)
-H_73       73           # (OH enol/phenol H)
-H_124      124          # (CH acetylene H)
-H_B        5            # (H bridge)
-O_3        6            # (O sp3)
-O_49       49           # (epoxy O)
-O_69       69           # (amine oxide O)
-O_70       70           # (ketonium O)
-O_75       75           # (carboxyl O-H)
-O_145      145          # (hydroxyamine O)
-O_3_Z      6            # (O sp3)
-O_R        6            #  (O sp3)
-O_41       41           # (furane O)
-O_47       47           # (carboxylate anion O)
-O_77       77           # (acid C=O)
-O_78       78           # (ester C=O)
-O_79       79           # (amide C=O)
-O_80       80           # (halide C=O)
-O_81       81           # (enone C=O)
-O_82       82           # (anhydride C=O)
-O_148      148          # (anhydride (localized) O)
-O_149      149          # (anhydride (delocalized) O)
-O_2        7            # (O ketone or aldehyde)
-O_159      159          # (phosphate O)
-O_1        7            # (O sp, M-CO)
-N_3        8            # (N sp3)
-N_39       39           # (ammonium N)
-N_146      146          # (hydroxyamine N)
-N_150      150          # (sp3 hydrazine N)
-N_155      155          # (sp3 sulfonamide N)
-N_164      164          # (sp3 Li-amide N)
-N_R        37           # (N pyr, -N=C- (deloc))
-N_40       40           # (pyrrole N)
-N_143      143          # (axoxy N (delocalized))
-N_144      144          # (azoxy N (delocalized))
-N_151      151          # (sp2 amide (delocalized))
-N_2        9            # (N sp2)  
-N_43       43           # (azoxy  =N-O)
-N_45       45           # ( azide center N)
-N_46       46           # (nitro N)
-N_72       72           # (imine N (localized))
-N_107      107          # (azo N (localized))
-N_108      108          # (oxime N)
-N_109      109          # (azoxy N (localized))
-N_110      110          # (cationic N of imminium)
-N_111      111          # (cationic N of pyridinium)
-N_1        10           # (N sp)
-F_         11           # (F general)
-CL         12           # (Cl general)
-BR         13           # (Br general)
-I_         14           # (I general)
-S_3+2      15           # (S sulfide)
-S_16       16           # (sulfonium S)
-S_17       17           # (sulfoxide S)
-S_18       18           # (sulfone S)
-S_104      104          # (disulfide bridge S)
-S_105      105          # (polysulfide S)
-S_3+4      154          # (SX3-R, selected as sulfonamide in MM3)
-S_3+6      154          # (SO4, selected as sulfonamide in MM3)
-S_R        42           # (sp2 thiophene S)
-S_2        74           # (C=S thiocarbonyl)
-P_3+3      25           # (general phosphine) 
-P_3+5      25           # (general phosphine)
-P_60       60           # (phosphorus P(V))
-P_153      153          # (phosphate P)
-P_3+Q      25           # (general phosphine)
-B_2        26           # (sp2 B)
-B_3        27           # (sp3 B)
-SI3        19           # (Si general)
-SN3        32           # (Se general)
-HE4+4      51           # (He general)
-NE4+4      52           # (Ne general)
-AR4+4      53           # (Ar general)
-KR4+4      54           # (Kr general)
-XE4+4      55           # (Xe general)
+C_3        1            # Csp3
+C_22       22           # cyclopropane C
+C_56       56           # cyclobutane C
+C_2        2            # Csp2
+C_3C       3            # C carbonyl
+C_29       29           # radical C
+C_30       30           # carbonium ion
+C_38       38           # cyclopropene C
+C_57       57           # cyclobutene C
+C_113      113          # Cferrocene-H
+C_114      114          # Cferrocene-C
+C_R        2            # Carom
+C_50       50           # benzene (localized) C
+C_58       58           # cyclobutanone C
+C_67       67           # cyclopropanone C
+C_71       71           # ketonium C
+C_1        4            # C sp
+C_68       68           # allene C
+C_106      106          # ketene C
+H_         5            # normal terminal H 
+H_21       21           # O-H alcohol H
+H_23       23           # NH amine/imine H
+H_24       24           # COOH carboxyl H
+H_28       28           # N-H amide H
+H_36       36           # deuterium D
+H_44       44           # SH thiol H
+H_48       48           # ammonium H
+H_73       73           # OH enol/phenol H
+H_124      124          # CH acetylene H
+H_B        5            # H bridge
+O_3        6            # O sp3
+O_49       49           # epoxy O
+O_69       69           # amine oxide O
+O_70       70           # ketonium O
+O_75       75           # carboxyl O-H
+O_145      145          # hydroxyamine O
+O_3_Z      6            # O sp3
+O_R        6            # O sp3
+O_41       41           # furane O
+O_47       47           # carboxylate anion O
+O_77       77           # acid C=O
+O_78       78           # ester C=O
+O_79       79           # amide C=O
+O_80       80           # halide C=O
+O_81       81           # enone C=O
+O_82       82           # anhydride C=O
+O_148      148          # anhydride (localized) O
+O_149      149          # anhydride (delocalized) O
+O_2        7            # O ketone or aldehyde
+O_159      159          # phosphate O
+O_1        7            # O sp, M-CO
+N_3        8            # N sp3
+N_39       39           # ammonium N
+N_146      146          # hydroxyamine N
+N_150      150          # sp3 hydrazine N
+N_155      155          # sp3 sulfonamide N
+N_164      164          # sp3 Li-amide N
+N_R        37           # N pyr, -N=C- (deloc)
+N_40       40           # pyrrole N
+N_143      143          # axoxy N (delocalized)
+N_144      144          # azoxy N (delocalized)
+N_151      151          # sp2 amide (delocalized)
+N_2        9            # N sp2) 
+N_43       43           # azoxy =N-O
+N_45       45           # azide center N
+N_46       46           # nitro N
+N_72       72           # imine N (localized)
+N_107      107          # azo N (localized)
+N_108      108          # oxime N
+N_109      109          # azoxy N (localized)
+N_110      110          # cationic N of imminium
+N_111      111          # cationic N of pyridinium
+N_1        10           # N sp
+F_         11           # F general
+CL         12           # Cl general
+BR         13           # Br general
+I_         14           # I general
+S_3+2      15           # S sulfide
+S_16       16           # sulfonium S
+S_17       17           # sulfoxide S
+S_18       18           # sulfone S
+S_104      104          # disulfide bridge S
+S_105      105          # polysulfide S
+S_3+4      154          # SX3-R, selected as sulfonamide in MM3
+S_3+6      154          # SO4, selected as sulfonamide in MM3
+S_R        42           # sp2 thiophene S
+S_2        74           # C=S thiocarbonyl
+P_3+3      25           # general phosphine
+P_3+5      25           # general phosphine
+P_60       60           # phosphorus P(V)
+P_153      153          # phosphate P
+P_3+Q      25           # general phosphine
+B_2        26           # sp2 B
+B_3        27           # sp3 B
+SI3        19           # Si general
+SN3        32           # Se general
+HE4+4      51           # He general
+NE4+4      52           # Ne general
+AR4+4      53           # Ar general
+KR4+4      54           # Kr general
+XE4+4      55           # Xe general
+
 
 # MM3 representative metal and semimetal elements
 
-LI         163          # (Li general)
-MG3+2      59           # (Mg general)
-GE3        31           # (Ge general)
-PB3        33           # (Pb (IV))
-SE3+2      34           # (Se general)
-TE3+2      35           # (Te general)
-CA6+2      125          # (Ca general)
-SR6+2      126          # (Sr general)
-BA6+2      127          # (Ba general)
+LI         163          # Li general
+MG3+2      59           # Mg general
+GE3        31           # Ge general
+PB3        33           # Pb (IV)
+SE3+2      34           # Se general
+TE3+2      35           # Te general
+CA6+2      125          # Ca general
+SR6+2      126          # Sr general
+BA6+2      127          # Ba general
+
 
 # MM3 no representative metal elements
 
-FE3+2       62          # (Fe (III))
-FE_61       61          # (Fe(II))
-FE6+2       62          # (Fe (III))
-NI4+2       63          # (Ni (II))
-NI_64       64          # (Ni(III))
-CO6+3       66          # (Co (III))
-CO_65       65          # (Co(II))
-LA3+3       128         # (La general)
-CE6+3       129         # (Ce general)
-PR6+3       130         # (Pr general)
-ND6+3       131         # (Nd general)
-PM6+3       132         # (Pm general)
-SM6+3       133         # (Sm general)
-EU6+3       134         # (Eu general)
-GD6+3       135         # (Gd general)
-TB6+3       136         # (Tb general)
-DY6+3       137         # (Dy general)
-HO6+3       138         # (Ho general)
-ER6+3       139         # (Er general)
-TM6+3       140         # (Tm general)
-YB6+3       141         # (Yb general)
-LU6+3       142         # (Lu general)
+FE3+2       62          # Fe (III)
+FE_61       61          # Fe(II)
+FE6+2       62          # Fe (III)
+NI4+2       63          # Ni (II)
+NI_64       64          # Ni(III)
+CO6+3       66          # Co (III)
+CO_65       65          # Co(II)
+LA3+3       128         # La general
+CE6+3       129         # Ce general
+PR6+3       130         # Pr general
+ND6+3       131         # Nd general
+PM6+3       132         # Pm general
+SM6+3       133         # Sm general
+EU6+3       134         # Eu general
+GD6+3       135         # Gd general
+TB6+3       136         # Tb general
+DY6+3       137         # Dy general
+HO6+3       138         # Ho general
+ER6+3       139         # Er general
+TM6+3       140         # Tm general
+YB6+3       141         # Yb general
+LU6+3       142         # Lu general
+
 
 # Transformation of UFF atoms which don't exist in MM3
 
