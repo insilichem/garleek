@@ -31,7 +31,7 @@ setup(
     include_package_data=True,
     platforms='any',
     classifiers=[
-        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python',
         'Development Status :: 2 - Pre-Alpha',
         'Natural Language :: English',
         'Intended Audience :: Science/Research',

@@ -7,8 +7,6 @@ Garleek - Tinker bridge
 
 from __future__ import print_function, division
 import os
-import sys
-from collections import OrderedDict
 from distutils.spawn import find_executable
 from subprocess import check_output
 from tempfile import NamedTemporaryFile

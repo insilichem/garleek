@@ -47,7 +47,6 @@ def patch_gaussian_input(filename, atom_types, engine='tinker', forcefield=None)
     return '\n'.join(lines)
 
 
-
 def parse_gaussian_EIn(ein_filename):
     """
     Parse the `*.EIn`file produced by Gaussian `external` keyword.
