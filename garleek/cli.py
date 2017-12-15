@@ -51,9 +51,7 @@ PATCHERS = {
 
 def types_app(argv=None):
     args = types_args(argv)
-    rosetta_path = get_file('{}_to_{}'.format(args.from_, args.to))
-    rosetta = parse_atom_types(rosetta_path)
-    rosetta.update(parse_atom_types(args.custom))
+    rosetta = parse_atom_types(get_file(args.atom_types))
     patcher = PATCHERS[args.qm]
     patcher(args.input_file, rosetta, engine=args.mm, forcefield=args.ff)
 

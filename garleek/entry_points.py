@@ -5,21 +5,19 @@ import os
 import numpy as np
 from .qm.gaussian import parse_gaussian_EIn, prepare_gaussian_EOu
 from .mm.tinker import prepare_tinker_xyz, run_tinker
-from .atom_types import parse_atom_types
+from .atom_types import parse as parse_atom_types
 from .units import *
 
 
-def gaussian_tinker(ein_filename, eou_filename=None, atom_types=None,
-                    forcefield=None, write_file=True):
+def gaussian_tinker(forcefield=None, write_file=True, *args):
+    layer, ein_filename, eou_filename, msg_file, fchk_file, matel_file = args[:6]
     # Defaults
-    if atom_types is not None:
-        atom_types = parse_atom_types(atom_types)
     if forcefield is None:
         forcefield = 'mmff.prm'
     # Gaussian Input
     ein = parse_gaussian_EIn(ein_filename)
     # TINKER inputs
-    xyz = prepare_tinker_xyz(ein['atoms'], ein['bonds'], atom_types=atom_types)
+    xyz = prepare_tinker_xyz(ein['atoms'], ein['bonds'])
     with_gradients = ein['derivatives'] > 0
     with_hessian = ein['derivatives'] == 2
     mm = run_tinker(xyz, n_atoms=ein['n_atoms'], energy=True, dipole_moment=True,

@@ -20,20 +20,18 @@ tinker_analyze = find_executable('analyze')
 tinker_testgrad = find_executable('testgrad')
 
 
-def prepare_tinker_input(atoms, bonds, atom_types=None, forcefield=None):
-    xyz = prepare_tinker_xyz(atoms, bonds, atom_types=atom_types)
+def prepare_tinker_input(atoms, bonds, forcefield=None):
+    xyz = prepare_tinker_xyz(atoms, bonds)
     inpkey = prepare_tinker_inpkey(forcefield, atoms)
     return xyz, inpkey
 
 
-def prepare_tinker_xyz(atoms, bonds, atom_types=None):
-    if atom_types is None:
-        atom_types = {}
+def prepare_tinker_xyz(atoms, bonds):
     out = [str(len(atoms))]
     for index, atom in atoms.items():
         line = ([index, atom['element']] +
                 (atom['xyz'] * RBOHR_TO_ANGSTROM).tolist() +
-                [atom_types.get(atom['type'], atom['type'])] +
+                [atom['type']] +
                 [bonded_to for (bonded_to, bond_index) in bonds[index]
                  if bond_index >= 0.5])
         out.append(' '.join(map(str, line)))
