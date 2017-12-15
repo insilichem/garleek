@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from argparse import ArgumentParser
+from argparse import ArgumentParser, REMAINDER, SUPPRESS
 import sys
 from .entry_points import gaussian_tinker
 from .atom_types import get_file, parse as parse_atom_types
@@ -13,6 +13,8 @@ CONNECTORS = {
         'tinker': gaussian_tinker
     }
 }
+QM_ENGINES = set(CONNECTORS)
+MM_ENGINES = set([k for (qm, mm) in CONNECTORS.items() for k in mm])
 
 
 def run_app(argv=None):
@@ -23,22 +25,19 @@ def run_app(argv=None):
         sys.exit("ERROR: Connector with QM={} and MM={} "
                  "is not available".format(args.qm, args.mm))
 
-    connector(args.input_file, eou_filename=args.output_file,
-              atom_types=args.atom_types, forcefield=args.ff)
+    connector(forcefield=args.ff, *args.qmargs)
 
 
 def run_args(argv=None):
     p = ArgumentParser()
-    p.add_argument('--mm')
-    p.add_argument('--qm', default='gaussian')
-    p.add_argument('--ff')
-    p.add_argument('--atom_types')
-    p.add_argument('layer')
-    p.add_argument('input_file')
-    p.add_argument('output_file')
-    p.add_argument('msg_file')
-    p.add_argument('fchk_file')
-    p.add_argument('matel_file')
+    p.add_argument('--qm', type=str, default='gaussian', choices=QM_ENGINES,
+                   help='QM program calling Garleek. Defaults to Gaussian')
+    p.add_argument('--mm', type=str, default='tinker', choices=MM_ENGINES,
+                   help='MM engine to use. Defaults to Tinker')
+    p.add_argument('--ff', type=str, default='mm3',
+                   help='Forcefield to be used by the MM engine')
+    # Arguments injected by the QM program
+    p.add_argument('qmargs', nargs=REMAINDER, help=SUPPRESS)
 
     return p.parse_args(argv)
 
@@ -58,12 +57,14 @@ def types_app(argv=None):
 
 def types_args(argv=None):
     p = ArgumentParser()
-    p.add_argument('--qm', default='gaussian')
-    p.add_argument('--mm', default='tinker')
-    p.add_argument('--ff', default=None)
-    p.add_argument('--from', default='uff')
-    p.add_argument('--to', default='mm3')
-    p.add_argument('--custom')
+    p.add_argument('--qm', type=str, default='gaussian', choices=QM_ENGINES,
+                   help='QM program calling Garleek. Defaults to Gaussian')
+    p.add_argument('--mm', type=str, default='tinker', choices=MM_ENGINES,
+                   help='MM engine to use. Defaults to Tinker')
+    p.add_argument('--ff', type=str, default='mm3',
+                   help='Forcefield to be used by the MM engine')
+    p.add_argument('--atom_types', default='uff_to_mm3',
+                   help='Dictionary of QM-provided and MM-needed atom types')
     p.add_argument('input_file')
 
     return p.parse_args(argv)
