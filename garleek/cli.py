@@ -58,6 +58,7 @@ def types_app(argv=None):
     with open(filename + '.garleek' + ext, 'w') as f:
         f.write(patched)
 
+
 def types_args(argv=None):
     p = ArgumentParser()
     p.add_argument('--qm', type=str, default='gaussian', choices=QM_ENGINES,
