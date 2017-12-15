@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from argparse import ArgumentParser, REMAINDER, SUPPRESS
+import os
 import sys
 from .entry_points import gaussian_tinker
 from .atom_types import get_file, parse as parse_atom_types
@@ -50,10 +51,12 @@ PATCHERS = {
 
 def types_app(argv=None):
     args = types_args(argv)
-    rosetta = parse_atom_types(get_file(args.atom_types))
+    rosetta = parse_atom_types(get_file(args.types))
     patcher = PATCHERS[args.qm]
-    patcher(args.input_file, rosetta, engine=args.mm, forcefield=args.ff)
-
+    patched = patcher(args.input_file, rosetta, engine=args.mm, forcefield=args.ff)
+    filename, ext = os.path.splitext(args.input_file)
+    with open(filename + '.garleek' + ext, 'w') as f:
+        f.write(patched)
 
 def types_args(argv=None):
     p = ArgumentParser()
@@ -63,7 +66,7 @@ def types_args(argv=None):
                    help='MM engine to use. Defaults to Tinker')
     p.add_argument('--ff', type=str, default='mm3',
                    help='Forcefield to be used by the MM engine')
-    p.add_argument('--atom_types', default='uff_to_mm3',
+    p.add_argument('--types', default='uff_to_mm3',
                    help='Dictionary of QM-provided and MM-needed atom types')
     p.add_argument('input_file')
 
