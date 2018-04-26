@@ -124,20 +124,18 @@ def _parse_tinker_testhess(data, n_atoms):
 
 
 def run_tinker(xyz_data, n_atoms, energy=True, dipole_moment=True,
-               gradients=True, hessian=True, inp_data=None):
+               gradients=True, hessian=True, params_fn='mm3.prm'):
     error = 'Could not obtain {}! Command run:\n  {}\n\nTINKER output:\n{}'
 
-    with NamedTemporaryFile(suffix='.xyz', delete=False) as f_xyz:
+    with NamedTemporaryFile(suffix='.xyz', delete=False, mode='w') as f_xyz:
         f_xyz.write(xyz_data)
         xyz = f_xyz.name
-    if inp_data is not None:
-        with open(os.path.splitext(xyz)[0] + '.key', 'w') as f_inpkey:
-            f_inpkey.write(inp_data)
+
     results = {}
     if energy or dipole_moment:
         args = ','.join(['E' if energy else '', 'M' if dipole_moment else ''])
-        command = [tinker_analyze, xyz, args]
-        output = check_output(command)
+        command = [tinker_analyze, xyz, params_fn, args]
+        output = check_output(command).decode("utf-8")
         energy, dipole = _parse_tinker_analyze(output)
         if energy is None:
             raise ValueError(error.format('energy', ' '.join(command), output))
@@ -147,14 +145,14 @@ def run_tinker(xyz_data, n_atoms, energy=True, dipole_moment=True,
         results['dipole_moment'] = dipole
 
     if gradients:
-        output = check_output([tinker_testgrad, xyz, 'y', 'n', '0.1D-04'])
+        output = check_output([tinker_testgrad, xyz, params_fn,  'y', 'n', '0.1D-04']).decode("utf-8")
         gradients = _parse_tinker_testgrad(output)
         if gradients is None:
             raise ValueError(error.format('gradients', ' '.join(command), output))
         results['gradients'] = gradients
 
     if hessian:
-        output = check_output([tinker_testhess, xyz, 'y', 'n'])
+        output = check_output([tinker_testhess, xyz, params_fn, 'y', 'n']).decode("utf-8")
         hessian = _parse_tinker_testhess(output, n_atoms)
         if hessian is None:
             raise ValueError(error.format('hessian', ' '.join(command), output))
