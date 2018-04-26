@@ -1,19 +1,18 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from __future__ import print_function, absolute_import, division
 import os
+import shutil
 import numpy as np
 from .qm.gaussian import parse_gaussian_EIn, prepare_gaussian_EOu
-from .mm.tinker import prepare_tinker_xyz, run_tinker
+from .mm.tinker import prepare_tinker_xyz, run_tinker, prepare_tinker_inpkey
 from .atom_types import parse as parse_atom_types
-from .units import *
+from . import units as u
 
 
-def gaussian_tinker(forcefield=None, write_file=True, *args):
-    layer, ein_filename, eou_filename, msg_file, fchk_file, matel_file = args[:6]
-    # Defaults
-    if forcefield is None:
-        forcefield = 'mmff.prm'
+def gaussian_tinker(qmargs, forcefield='mm3.prm', write_file=True):
+    layer, ein_filename, eou_filename, msg_file, fchk_file, matel_file = qmargs[:6]
     # Gaussian Input
     ein = parse_gaussian_EIn(ein_filename)
     # TINKER inputs
@@ -21,15 +20,15 @@ def gaussian_tinker(forcefield=None, write_file=True, *args):
     with_gradients = ein['derivatives'] > 0
     with_hessian = ein['derivatives'] == 2
     mm = run_tinker(xyz, n_atoms=ein['n_atoms'], energy=True, dipole_moment=True,
-                    gradients=with_gradients, hessian=with_hessian)
+                    gradients=with_gradients, hessian=with_hessian, params_fn=forcefield)
     # Unit conversion from Tinker to Gaussian
-    mm['energy'] = mm['energy'] * KCALMOL_TO_HARTREE
-    mm['dipole_moment'] = mm['dipole_moment'] * DEBYES_TO_EBOHR
+    mm['energy'] = mm['energy'] * u.KCALMOL_TO_HARTREE
+    mm['dipole_moment'] = mm['dipole_moment'] * u.DEBYES_TO_EBOHR
     if with_gradients:
-        mm['gradients'] = mm['gradients'] * KCALMOLEANGSTROM_TO_HARTREEBOHR
+        mm['gradients'] = mm['gradients'] * u.KCALMOLEANGSTROM_TO_HARTREEBOHR
     if with_hessian:
         mm['hessian'] = mm['hessian'][np.tril_indices(ein['n_atoms']*3)] \
-                        * KCALMOLEANGSTROMSQ_TO_HARTREEBOHRSQ
+                        * u.KCALMOLEANGSTROMSQ_TO_HARTREEBOHRSQ
     # Generate files requested by Gaussian
     eou_data = prepare_gaussian_EOu(ein['n_atoms'], **mm)
     if write_file:

@@ -5,18 +5,23 @@
 Garleek - Tinker bridge
 """
 
-from __future__ import print_function, division
+from __future__ import print_function, absolute_import, division
 import os
+import sys
 from distutils.spawn import find_executable
 from subprocess import check_output
 from tempfile import NamedTemporaryFile
 import numpy as np
-from ..units import *
+from  .. import units as u
 
 
-tinker_testhess = find_executable('testhess')
-tinker_analyze = find_executable('analyze')
-tinker_testgrad = find_executable('testgrad')
+tinker_testhess = os.environ.get('TINKER_TESTHESS') or find_executable('testhess')
+tinker_analyze = os.environ.get('TINKER_ANALYZE') or find_executable('analyze')
+tinker_testgrad = os.environ.get('TINKER_TESTGRAD') or find_executable('testgrad')
+
+
+if not all([tinker_testhess, tinker_analyze, tinker_testgrad]):
+    sys.exit('TINKER executables could not be found in $PATH')
 
 
 def prepare_tinker_input(atoms, bonds, forcefield=None):
@@ -29,7 +34,7 @@ def prepare_tinker_xyz(atoms, bonds):
     out = [str(len(atoms))]
     for index, atom in atoms.items():
         line = ([index, atom['element']] +
-                (atom['xyz'] * RBOHR_TO_ANGSTROM).tolist() +
+                (atom['xyz'] * u.RBOHR_TO_ANGSTROM).tolist() +
                 [atom['type']] +
                 [bonded_to for (bonded_to, bond_index) in bonds[index]
                  if bond_index >= 0.5])
@@ -38,10 +43,10 @@ def prepare_tinker_xyz(atoms, bonds):
     return '\n'.join(out)
 
 
-def prepare_tinker_inpkey(forcefield, atoms):
-    if 'inp.key' in os.listdir('.'):
-        return ''
-    return ''
+def prepare_tinker_inpkey(forcefield, name):
+    with open(name + '.key', 'w') as f:
+        f.write('parameters ' + forcefield)
+    return name + '.key'
 
 
 def _parse_tinker_analyze(data):
@@ -51,8 +56,7 @@ def _parse_tinker_analyze(data):
     components (debyes).
     """
     energy, dipole = None, None
-    lines = data.splitlines()
-    for line in lines:
+    for line in data.splitlines():
         line = line.strip()
         if line.startswith('Total Potential Energy'):
             energy = float(line.split()[4])

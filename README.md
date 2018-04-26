@@ -13,13 +13,13 @@ Garleek is designed to be as simple as possible, using almost no 3rd party depen
 
 Garleek comes is composed of two small programs:
 
-- `garleek-types`, used to patch the QM-provided input file with correct atom types
-- `garleek-run`, which interfaces the QM program with the MM engine to make them understand each other
+- `garleek`, used to patch the QM-provided input file with correct atom types
+- `garleek-backend`, which interfaces the QM program with the MM engine to make them understand each other
 
-Usually, `garleek-types` will inject the necessary `garleek-run` calls in the QM input file, so you should only run the following command. Everything else is handled automatically.
+Usually, `garleek` will inject the necessary `garleek-backend` calls in the QM input file, so you should only run the following command. Everything else is handled automatically.
 
 ```
-garleek-types --qm gaussian --mm tinker --ff mm3 --types uff_to_mm3 MyInputFile.in
+garleek --qm gaussian --mm tinker --ff mm3 --types uff_to_mm3 MyInputFile.in
 ```
 
 - `--qm` refers to the QM program handling the QM/MM calculation
