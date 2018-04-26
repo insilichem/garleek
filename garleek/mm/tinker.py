@@ -26,7 +26,7 @@ if not all([tinker_testhess, tinker_analyze, tinker_testgrad]):
 
 def prepare_tinker_input(atoms, bonds, forcefield=None):
     xyz = prepare_tinker_xyz(atoms, bonds)
-    inpkey = prepare_tinker_inpkey(forcefield, atoms)
+    inpkey = prepare_tinker_key(forcefield)
     return xyz, inpkey
 
 
@@ -43,10 +43,15 @@ def prepare_tinker_xyz(atoms, bonds):
     return '\n'.join(out)
 
 
-def prepare_tinker_inpkey(forcefield, name):
-    with open(name + '.key', 'w') as f:
-        f.write('parameters ' + forcefield)
-    return name + '.key'
+def prepare_tinker_key(forcefield, additional=None):
+    with open('garleek.key', 'w') as f:
+        print('parameters ', forcefield, file=f)
+        if additional is not None:
+            if os.path.isfile(additional):
+                with open(additional) as g:
+                    additional = g.read()
+            f.write(additional)
+    return os.path.abspath('garleek.key')
 
 
 def _parse_tinker_analyze(data):
@@ -128,7 +133,7 @@ def _parse_tinker_testhess(data, n_atoms):
 
 
 def run_tinker(xyz_data, n_atoms, energy=True, dipole_moment=True,
-               gradients=True, hessian=True, params_fn='mm3.prm'):
+               gradients=True, hessian=True, key='mm3.prm'):
     error = 'Could not obtain {}! Command run:\n  {}\n\nTINKER output:\n{}'
 
     with NamedTemporaryFile(suffix='.xyz', delete=False, mode='w') as f_xyz:
@@ -138,7 +143,7 @@ def run_tinker(xyz_data, n_atoms, energy=True, dipole_moment=True,
     results = {}
     if energy or dipole_moment:
         args = ','.join(['E' if energy else '', 'M' if dipole_moment else ''])
-        command = [tinker_analyze, xyz, params_fn, args]
+        command = [tinker_analyze, xyz, '-k', key, args]
         output = check_output(command).decode("utf-8")
         energy, dipole = _parse_tinker_analyze(output)
         if energy is None:
@@ -149,14 +154,14 @@ def run_tinker(xyz_data, n_atoms, energy=True, dipole_moment=True,
         results['dipole_moment'] = dipole
 
     if gradients:
-        output = check_output([tinker_testgrad, xyz, params_fn,  'y', 'n', '0.1D-04']).decode("utf-8")
+        output = check_output([tinker_testgrad, xyz, '-k', key,  'y', 'n', '0.1D-04']).decode("utf-8")
         gradients = _parse_tinker_testgrad(output)
         if gradients is None:
             raise ValueError(error.format('gradients', ' '.join(command), output))
         results['gradients'] = gradients
 
     if hessian:
-        output = check_output([tinker_testhess, xyz, params_fn, 'y', 'n']).decode("utf-8")
+        output = check_output([tinker_testhess, xyz, '-k', key, 'y', 'n']).decode("utf-8")
         hessian = _parse_tinker_testhess(output, n_atoms)
         if hessian is None:
             raise ValueError(error.format('hessian', ' '.join(command), output))
