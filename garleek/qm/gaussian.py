@@ -5,6 +5,7 @@
 Garleek - Gaussian bridge
 """
 
+from __future__ import print_function, absolute_import, division
 from collections import OrderedDict
 import numpy as np
 
@@ -15,21 +16,23 @@ def patch_gaussian_input(filename, atom_types, engine='tinker', forcefield=None)
         return line.startswith('#') and 'external=' in line.lower()
 
     def _patch_mm_keyword(line):
-        command = 'garleek --qm gaussian --mm {}'.format(engine)
+        command = 'garleek-backend --qm gaussian --mm {}'.format(engine)
         if forcefield:
             command += ' --ff {}'.format(forcefield)
-        return line.replace('garleek', command)
+        return line.replace('garleek', '"{}"'.format(command))
 
     def _patch_atom_type(line):
         fields = line.split()
-        if len(fields) <= 2:
-            return line
         atom_fields = fields[0].split('-')
         atom_type = atom_fields[1]
-        start = line.index(atom_type)
-        end = start + len(atom_type)
-        return line[:start] + atom_types[atom_type] + line[end:]
+        line = line.replace(atom_type, atom_types[atom_type], 1)
+        if len(fields) > 6:
+            link_atom = fields[6]
+            link_atom_type = link_atom.split('-')[1]
+            line = line.replace(link_atom_type, atom_types[link_atom_type])
+        return line
 
+    skipped_mult_charges = False
     section = 0
     lines = []
     with open(filename) as f:
@@ -42,9 +45,12 @@ def patch_gaussian_input(filename, atom_types, engine='tinker', forcefield=None)
             elif _is_route(line):
                 orig_line = _patch_mm_keyword(orig_line)
             elif line and section == 2:
-                orig_line = _patch_atom_type(orig_line)
+                if skipped_mult_charges:
+                    orig_line = _patch_atom_type(orig_line)
+                else:
+                    skipped_mult_charges = True
             lines.append(orig_line)
-    return '\n'.join(lines)
+    return ''.join(lines)
 
 
 def parse_gaussian_EIn(ein_filename):
