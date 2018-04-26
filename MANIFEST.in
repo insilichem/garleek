@@ -1,0 +1,2 @@
+include MANIFEST.in README.md LICENSE
+recursive-include garleek/data/

@@ -89,6 +89,9 @@ ENV/
 # Rope project settings
 .ropeproject
 
+# pytest
+.pytest*/
+
 # Custom
 sictwo/*
 tmp/*

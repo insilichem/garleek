@@ -4,7 +4,7 @@
 from setuptools import setup, find_packages
 import os
 import io
-
+from garleek import __version__
 here = os.path.abspath(os.path.dirname(__file__))
 
 
@@ -23,7 +23,7 @@ long_description = read('README.md')
 
 setup(
     name='garleek',
-    version='0.0.1',
+    version=__version__,
     url='https://github.com/insilichem/garleek',
     author='Jaime Rodríguez-Guerra',
     author_email='jaime.rogue@gmail.com',
@@ -43,7 +43,7 @@ setup(
     install_requires=['numpy'],
     entry_points='''
         [console_scripts]
-        garleek-run=garleek.cli:run_app
-        garleek-types=garleeek.cli:types_app
+        garleek=garleek.cli:frontend_app_main
+        garleek-backend=garleek.cli:backend_app
         '''
 )
