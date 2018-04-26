@@ -1,0 +1,51 @@
+
+     ######################################################################
+   ##########################################################################
+  ###                                                                      ###
+ ###            TINKER  ---  Software Tools for Molecular Design            ###
+ ##                                                                          ##
+ ##                        Version 7.1  February 2015                        ##
+ ##                                                                          ##
+ ##               Copyright (c)  Jay William Ponder  1990-2015               ##
+ ###                           All Rights Reserved                          ###
+  ###                                                                      ###
+   ##########################################################################
+     ######################################################################
+
+
+ Total Potential Energy :                  8.8032 Kcal/mole
+
+ Energy Component Breakdown :           Kcal/mole      Interactions
+
+ Bond Stretching                           1.3554              9
+ Angle Bending                             5.9937             13
+ Stretch-Bend                              0.2801             13
+ Out-of-Plane Bend                         0.0000             12
+ Torsional Angle                           0.0000             16
+ Van der Waals                             0.0372             14
+ Charge-Charge                             1.1368             14
+
+ Total Electric Charge :                  0.00000 Electrons
+
+ Dipole Moment Magnitude :                  1.826 Debyes
+
+ Dipole X,Y,Z-Components :                  1.712      -0.635       0.000
+
+ Quadrupole Moment Tensor :                -0.626       2.778      -0.000
+      (Buckinghams)                         2.778       5.979      -0.001
+                                           -0.000      -0.001      -5.353
+
+ Principal Axes Quadrupole :               -5.353      -1.639       6.992
+
+ Radius of Gyration :                       1.722 Angstroms
+
+ Center of Mass Coordinates :           -1.239074    1.163939    0.483674
+ Euler Angles (Phi/Theta/Psi) :           150.419       0.002       0.005
+
+ Moments of Inertia and Principal Axes :
+
+             Moments (amu Ang^2)          X-, Y- and Z-Components of Axes
+
+                     53.556             -0.869660   -0.493651    0.000014
+                     54.616              0.493651   -0.869660    0.000095
+                    108.172             -0.000034    0.000090    1.000000

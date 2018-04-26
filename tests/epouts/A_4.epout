@@ -1,0 +1,47 @@
+
+     ######################################################################
+   ##########################################################################
+  ###                                                                      ###
+ ###            TINKER  ---  Software Tools for Molecular Design            ###
+ ##                                                                          ##
+ ##                        Version 7.1  February 2015                        ##
+ ##                                                                          ##
+ ##               Copyright (c)  Jay William Ponder  1990-2015               ##
+ ###                           All Rights Reserved                          ###
+  ###                                                                      ###
+   ##########################################################################
+     ######################################################################
+
+
+ Total Potential Energy :                  0.2463 Kcal/mole
+
+ Energy Component Breakdown :           Kcal/mole      Interactions
+
+ Bond Stretching                           0.0581              4
+ Angle Bending                             0.1657              6
+ Stretch-Bend                              0.0226              6
+
+ Total Electric Charge :                  0.00000 Electrons
+
+ Dipole Moment Magnitude :                  0.000 Debyes
+
+ Dipole X,Y,Z-Components :                  0.000       0.000       0.000
+
+ Quadrupole Moment Tensor :                 0.000       0.000       0.000
+      (Buckinghams)                         0.000       0.000       0.000
+                                            0.000       0.000       0.000
+
+ Principal Axes Quadrupole :                0.000       0.000       0.000
+
+ Radius of Gyration :                       0.982 Angstroms
+
+ Center of Mass Coordinates :            0.443298   -2.958454    0.001100
+ Euler Angles (Phi/Theta/Psi) :            54.755     -56.874     -89.976
+
+ Moments of Inertia and Principal Axes :
+
+             Moments (amu Ang^2)          X-, Y- and Z-Components of Axes
+
+                      3.170              0.315358    0.482945   -0.816892
+                      3.275              0.446307    0.684195    0.576790
+                      3.281              0.837472   -0.546480    0.000225
