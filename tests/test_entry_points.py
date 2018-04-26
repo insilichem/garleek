@@ -44,7 +44,7 @@ def temporary_directory(enter=True, **kwargs):
     shutil.rmtree(temp_dir)
 
 
-@pytest.mark.parametrize("directory", sorted(next(os.walk(os.path.join(data)))[1]))
+@pytest.mark.parametrize("directory", sorted(next(os.walk(data))[1]))
 def test_gaussian_tinker(directory):
     if directory.endswith('UFF'):
         pytest.skip()
