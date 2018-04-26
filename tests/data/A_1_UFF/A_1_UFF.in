@@ -1,0 +1,21 @@
+%nprocshared=8
+%mem=8000MB
+%chk=A_1_UFF
+#p opt=nomicro oniom(B3LYP/6-31G*:UFF) geom=connectivity nosymm scf(maxcyc=100)
+
+ONIOM(QM:MM) OPT FREQ with SICTWO V1.0
+
+0 1 0 1 0 1
+ C-C_3            0    0.44534414   -2.95546554    0.00000000 H
+ H-H_             0    0.80199857   -3.96427554    0.00000000 H
+ H-H_             0    0.80201698   -2.45106735    0.87365150 L H-H_ 1
+ H-H_             0    0.80201698   -2.45106735   -0.87365150 H
+ H-H_             0   -0.62465586   -2.95545236    0.00000000 H
+
+ 1 2 1.0 3 1.0 4 1.0 5 1.0
+ 2
+ 3
+ 4
+ 5
+
+
