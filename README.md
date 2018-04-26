@@ -6,8 +6,8 @@ Interface Gaussian with MM programs via `external` keyword.
 
 Garleek is designed to be as simple as possible, using almost no 3rd party dependencies. You only need Python (2.7 or 3.4+) and NumPy. Then, of course, you need to install the software to be interfaced. Currently, we support:
 
-- **QM**: Gaussian 09D
-- **MM**: TINKER
+- **QM**: Gaussian 16 or 09D
+- **MM**: TINKER (you only need `analyze`, `testgrad` and `testhess` binaries; free for academy)
 
 ## Usage
 
@@ -27,6 +27,10 @@ garleek --qm gaussian --mm tinker --ff mm3 --types uff_to_mm3 MyInputFile.in
 - `--ff` is the forcefield to be used in the MM calculation
 - `--types` is the dictionary handling the conversion between the QM-provided atom types and those the MM engine actually needs for the chosen forcefield.
 - `MyInputFile.in` is the QM input file, which will be patched and saved as `MyInputFile.garleek.in`.
+
+## Testing
+
+Install `pytest` and `cclib` and run `pytest` in the root directory of this repo. `g16` or `g09` must be in `$PATH`.
 
 ## Useful resources:
 
