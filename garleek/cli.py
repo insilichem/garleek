@@ -51,6 +51,11 @@ def _extant_file_types(path):
 
 
 def backend_app(argv=None):
+    msg = 'Entering Garleek v{}'.format(__version__)
+    underline = '='*len(msg)
+    print(underline)
+    print(msg)
+    print(underline)
     args = backend_args(argv)
     try:
         connector = CONNECTORS[args.qm][args.mm]
@@ -58,6 +63,9 @@ def backend_app(argv=None):
         sys.exit("ERROR: Connector with QM={} and MM={} "
                  "is not available".format(args.qm, args.mm))
     connector(args.qmargs, forcefield=args.ff)
+    print(underline)
+    print('Exiting Garleek'.center(len(msg)))
+    print(underline)
 
 
 def backend_args(argv=None):
@@ -79,7 +87,7 @@ def frontend_app_main(argv=None):
     frontend_app(**vars(args))
 
 
-def frontend_app(input_file=None, types='uff_to_mm3', qm='gaussian', mm='tinker', 
+def frontend_app(input_file=None, types='uff_to_mm3', qm='gaussian', mm='tinker',
                  ff=_extant_file_prm('mm3.prm'), **kw):
     rosetta = parse_atom_types(get_file(types))
     patcher = PATCHERS[qm]
@@ -108,4 +116,4 @@ def frontend_args(argv=None):
                   '--qm software)')
 
     return p.parse_args(argv)
-    
+
