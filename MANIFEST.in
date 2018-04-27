@@ -1,2 +1,3 @@
 include MANIFEST.in README.md LICENSE
-recursive-include garleek/data/
+include garleek/data/atom_types/*
+include garleek/data/prm/*
