@@ -43,15 +43,30 @@ def prepare_tinker_xyz(atoms, bonds):
     return '\n'.join(out)
 
 
-def prepare_tinker_key(forcefield, additional=None):
-    with open('garleek.key', 'w') as f:
-        print('parameters', forcefield, file=f)
-        if additional is not None:
-            if os.path.isfile(additional):
-                with open(additional) as g:
-                    additional = g.read()
-            f.write(additional)
-    return os.path.abspath('garleek.key')
+def prepare_tinker_key(forcefield):
+    """
+    Prepare a file ready for TINKER's -k option.
+
+    `forcefield` should be either a:
+    - *.prm: proper forcefield file
+    - *.key, *.par: key file that can call *.prm files and add more
+      parameters
+
+    If a .prm file is provided, a .key file will be written to
+    accommodate the forcefield in a `parameters *` call.
+
+    Returns
+    -------
+    A TINKER .key file
+    """
+    if forcefield.lower().endswith('.prm'):
+        with open('garleek.key', 'w') as f:
+            print('parameters', os.path.abspath(forcefield), file=f)
+        return os.path.abspath('garleek.key')
+    elif os.path.splitext(forcefield)[1].lower() in ('.par', '.key'):
+        return os.path.abspath(forcefield)
+    else:
+        raise ValueError('TINKER key file must be .prm, .key or .par')
 
 
 def _parse_tinker_analyze(data):
@@ -144,6 +159,7 @@ def run_tinker(xyz_data, n_atoms, key, energy=True, dipole_moment=True,
     if energy or dipole_moment:
         args = ','.join(['E' if energy else '', 'M' if dipole_moment else ''])
         command = [tinker_analyze, xyz, '-k', key, args]
+        print('Running TINKER:', *command)
         output = check_output(command).decode("utf-8")
         energy, dipole = _parse_tinker_analyze(output)
         if energy is None:
@@ -154,14 +170,18 @@ def run_tinker(xyz_data, n_atoms, key, energy=True, dipole_moment=True,
         results['dipole_moment'] = dipole
 
     if gradients:
-        output = check_output([tinker_testgrad, xyz, '-k', key,  'y', 'n', '0.1D-04']).decode("utf-8")
+        command = [tinker_testgrad, xyz, '-k', key,  'y', 'n', '0.1D-04']
+        print('Running TINKER:', *command)
+        output = check_output(command).decode("utf-8")
         gradients = _parse_tinker_testgrad(output)
         if gradients is None:
             raise ValueError(error.format('gradients', ' '.join(command), output))
         results['gradients'] = gradients
 
     if hessian:
-        output = check_output([tinker_testhess, xyz, '-k', key, 'y', 'n']).decode("utf-8")
+        command = [tinker_testhess, xyz, '-k', key, 'y', 'n']
+        print('Running TINKER:', *command)
+        output = check_output(command).decode("utf-8")
         hessian = _parse_tinker_testhess(output, n_atoms)
         if hessian is None:
             raise ValueError(error.format('hessian', ' '.join(command), output))

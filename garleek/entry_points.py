@@ -11,17 +11,17 @@ from .atom_types import parse as parse_atom_types
 from . import units as u
 
 
-def gaussian_tinker(qmargs, forcefield='mm3.prm', write_file=True, more_params=None):
+def gaussian_tinker(qmargs, forcefield='mm3.prm', write_file=True):
     layer, ein_filename, eou_filename, msg_file, fchk_file, matel_file = qmargs[:6]
     # Gaussian Input
     ein = parse_gaussian_EIn(ein_filename)
     # TINKER inputs
     xyz = prepare_tinker_xyz(ein['atoms'], ein['bonds'])
-    key = prepare_tinker_key(forcefield, additional=more_params)
+    key = prepare_tinker_key(forcefield)
     with_gradients = ein['derivatives'] > 0
     with_hessian = ein['derivatives'] == 2
-    mm = run_tinker(xyz, n_atoms=ein['n_atoms'], energy=True, dipole_moment=True,
-                    gradients=with_gradients, hessian=with_hessian, key=key)
+    mm = run_tinker(xyz, n_atoms=ein['n_atoms'], key=key, energy=True, dipole_moment=True,
+                    gradients=with_gradients, hessian=with_hessian)
     # Unit conversion from Tinker to Gaussian
     mm['energy'] = mm['energy'] * u.KCALMOL_TO_HARTREE
     mm['dipole_moment'] = mm['dipole_moment'] * u.DEBYES_TO_EBOHR
