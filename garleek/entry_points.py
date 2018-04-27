@@ -21,7 +21,7 @@ def gaussian_tinker(qmargs, forcefield='mm3.prm', write_file=True, more_params=N
     with_gradients = ein['derivatives'] > 0
     with_hessian = ein['derivatives'] == 2
     mm = run_tinker(xyz, n_atoms=ein['n_atoms'], energy=True, dipole_moment=True,
-                    gradients=with_gradients, hessian=with_hessian, key=forcefield)
+                    gradients=with_gradients, hessian=with_hessian, key=key)
     # Unit conversion from Tinker to Gaussian
     mm['energy'] = mm['energy'] * u.KCALMOL_TO_HARTREE
     mm['dipole_moment'] = mm['dipole_moment'] * u.DEBYES_TO_EBOHR

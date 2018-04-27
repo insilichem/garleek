@@ -45,7 +45,7 @@ def prepare_tinker_xyz(atoms, bonds):
 
 def prepare_tinker_key(forcefield, additional=None):
     with open('garleek.key', 'w') as f:
-        print('parameters ', forcefield, file=f)
+        print('parameters', forcefield, file=f)
         if additional is not None:
             if os.path.isfile(additional):
                 with open(additional) as g:
@@ -132,8 +132,8 @@ def _parse_tinker_testhess(data, n_atoms):
     return hessian
 
 
-def run_tinker(xyz_data, n_atoms, energy=True, dipole_moment=True,
-               gradients=True, hessian=True, key='mm3.prm'):
+def run_tinker(xyz_data, n_atoms, key, energy=True, dipole_moment=True,
+               gradients=True, hessian=True):
     error = 'Could not obtain {}! Command run:\n  {}\n\nTINKER output:\n{}'
 
     with NamedTemporaryFile(suffix='.xyz', delete=False, mode='w') as f_xyz:
