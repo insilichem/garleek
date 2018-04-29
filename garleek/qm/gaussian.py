@@ -18,7 +18,7 @@ def patch_gaussian_input(filename, atom_types, engine='tinker', forcefield=None)
     def _patch_mm_keyword(line):
         command = 'garleek-backend --qm gaussian --mm {}'.format(engine)
         if forcefield:
-            command += ' --ff {}'.format(forcefield)
+            command += " --ff '{}'".format(forcefield)
         return line.replace('garleek', '"{}"'.format(command))
 
     def _patch_atom_type(line):
