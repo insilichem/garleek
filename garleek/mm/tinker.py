@@ -68,6 +68,11 @@ def prepare_tinker_key(forcefield):
     else:
         raise ValueError('TINKER key file must be .prm, .key or .par')
 
+def _decode(data):
+    try:
+        return data.decode()
+    except UnicodeDecodeError:
+        return data.decode('utf-8', 'ignore')
 
 def _parse_tinker_analyze(data):
     """
@@ -76,7 +81,7 @@ def _parse_tinker_analyze(data):
     components (debyes).
     """
     energy, dipole = None, None
-    for line in data.splitlines():
+    for line in _decode(data).splitlines():
         line = line.strip()
         if line.startswith('Total Potential Energy'):
             energy = float(line.split()[4])
@@ -91,7 +96,7 @@ def _parse_tinker_testgrad(data):
 
     """
     gradients = []
-    lines = data.splitlines()
+    lines = _decode(data).splitlines()
     for i, line in enumerate(lines):
         line = line.strip()
         if line.startswith('Cartesian Gradient Breakdown over Individual Atoms'):
@@ -111,7 +116,7 @@ def _parse_tinker_testhess(data, n_atoms):
     """
 
     """
-    hesfile = data.splitlines()[-1].split(':')[-1].strip()
+    hesfile = _decode(data).splitlines()[-1].split(':')[-1].strip()
     hessian = np.zeros((n_atoms * 3, n_atoms * 3))
     xyz_to_int = {'X': 0, 'Y': 1, 'Z': 2}
     with open(hesfile) as lines:
@@ -160,7 +165,7 @@ def run_tinker(xyz_data, n_atoms, key, energy=True, dipole_moment=True,
         args = ','.join(['E' if energy else '', 'M' if dipole_moment else ''])
         command = [tinker_analyze, xyz, '-k', key, args]
         print('Running TINKER:', *command)
-        output = check_output(command).decode("utf-8")
+        output = check_output(command)
         energy, dipole = _parse_tinker_analyze(output)
         if energy is None:
             raise ValueError(error.format('energy', ' '.join(command), output))
@@ -172,7 +177,7 @@ def run_tinker(xyz_data, n_atoms, key, energy=True, dipole_moment=True,
     if gradients:
         command = [tinker_testgrad, xyz, '-k', key,  'y', 'n', '0.1D-04']
         print('Running TINKER:', *command)
-        output = check_output(command).decode("utf-8")
+        output = check_output(command)
         gradients = _parse_tinker_testgrad(output)
         if gradients is None:
             raise ValueError(error.format('gradients', ' '.join(command), output))
@@ -181,7 +186,7 @@ def run_tinker(xyz_data, n_atoms, key, energy=True, dipole_moment=True,
     if hessian:
         command = [tinker_testhess, xyz, '-k', key, 'y', 'n']
         print('Running TINKER:', *command)
-        output = check_output(command).decode("utf-8")
+        output = check_output(command)
         hessian = _parse_tinker_testhess(output, n_atoms)
         if hessian is None:
             raise ValueError(error.format('hessian', ' '.join(command), output))
