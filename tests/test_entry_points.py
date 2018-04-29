@@ -17,6 +17,7 @@ from garleek.cli import frontend_app as frontend_garleek, _extant_file_types, _e
 here = os.path.abspath(os.path.dirname(__file__))
 data = os.path.join(here, 'data')
 gaussian_exe = find_executable('g16') or find_executable('g09') or 'g16'
+WORKING_DIR = os.getcwd()
 
 
 def isclose(a, b, rel_tol=1e-06, abs_tol=0.0):
@@ -30,6 +31,23 @@ def oniom_energy(path):
             if 'extrapolated' in line:
                 energy = float(line.split()[-1])
     return energy
+
+
+def check_errors(path):
+    last_lines = []
+    with open(path) as f:
+        for line in f:
+            last_lines.append(line)
+            last_lines = last_lines[-6:]
+            if 'Failed to open output file from external program' in line:
+                for last_line in last_lines[:-1]:
+                    title, g_output, _ = last_line.split('"')
+                    if not os.path.isfile(g_output):
+                        continue
+                    g_output_copy = os.path.basename(path) + os.path.splitext(g_output)[1]
+                    shutil.copy(g_output,  os.path.join(WORKING_DIR, 'outputs', g_output_copy))
+                return False
+    return True
 
 
 @contextmanager
@@ -50,15 +68,19 @@ def temporary_directory(enter=True, remove=True, **kwargs):
 def test_gaussian_tinker(directory):
     if directory.endswith('UFF'):
         pytest.skip()
-    workingdir = os.getcwd()
-    with temporary_directory(remove=True) as tmp:
+
+    with temporary_directory(remove=False) as tmp:
+        # Original data
         data_original = os.path.join(data, directory)
         outfile_original = os.path.join(data_original, directory + '.out')
         infile_original = os.path.join(data_original, directory + '.in')
+        # Copied tmp paths
         data_copy = os.path.join(tmp, directory)
         infile_copy = os.path.join(data_copy, directory + '.in')
         shutil.copytree(data_original, data_copy)
         os.chdir(data_copy)
+        # We are now in /tmp/garleek*****/A_1 or similar, which
+        # contains copies of the original Gaussian files and types
         # guess forcefield specified in atom.types
         ff = 'mm3.prm'
         with open('atom.types') as f:
@@ -74,9 +96,10 @@ def test_gaussian_tinker(directory):
 
         # Save output in working dir
         assert os.path.isfile(garleek_out)
-        if not os.path.exists(os.path.join(workingdir, 'outputs')):
-            os.mkdir(os.path.join(workingdir, 'outputs'))
-        shutil.copy(garleek_out, os.path.join(workingdir, 'outputs', os.path.basename(garleek_out)))
+        if not os.path.exists(os.path.join(WORKING_DIR, 'outputs')):
+            os.mkdir(os.path.join(WORKING_DIR, 'outputs'))
+        shutil.copy(garleek_out, os.path.join(WORKING_DIR, 'outputs', os.path.basename(garleek_out)))
+        assert check_errors(garleek_out)
         # Check values
         cc_original = cclib.ccopen(outfile_original).parse()
         cc_calculated = cclib.ccopen(garleek_out).parse()
