@@ -9,14 +9,17 @@ from __future__ import print_function, absolute_import, division
 from collections import OrderedDict
 import numpy as np
 
+supported_versions = '09a', '09b', '09c', '09d', '16'
+default_version = '16'
 
-def patch_gaussian_input(filename, atom_types, engine='tinker', forcefield=None):
+
+def patch_gaussian_input(filename, atom_types, mm='tinker', qm='gaussian', forcefield=None):
 
     def _is_route(line):
         return line.startswith('#') and 'external=' in line.lower()
 
     def _patch_mm_keyword(line):
-        command = 'garleek-backend --qm gaussian --mm {}'.format(engine)
+        command = 'garleek-backend --qm {} --mm {}'.format(qm, mm)
         if forcefield:
             command += " --ff '{}'".format(forcefield)
         return line.replace('garleek', '"{}"'.format(command))
@@ -53,7 +56,7 @@ def patch_gaussian_input(filename, atom_types, engine='tinker', forcefield=None)
     return ''.join(lines)
 
 
-def parse_gaussian_EIn(ein_filename):
+def parse_gaussian_EIn(ein_filename, version=default_version):
     """
     Parse the `*.EIn`file produced by Gaussian `external` keyword.
 
@@ -68,6 +71,8 @@ def parse_gaussian_EIn(ein_filename):
 
     `derivatives-requested` can be 0 (energy only), 1 (first derivatives)
     or 2 (second derivatives).
+
+    `version` must be one of `garleek.qm.gaussian.supported_versions`
     """
     with open(ein_filename) as f:
         n_atoms, derivatives, charge, spin = list(map(int, next(f).split()))
@@ -77,19 +82,29 @@ def parse_gaussian_EIn(ein_filename):
             atom_element = fields[0]
             atom_type = fields[5] if len(fields) == 6 else None
             x, y, z, mm_charge = list(map(float, fields[1:5]))
-            atoms[i+1] = {'element': 'E'+atom_element,
+            atoms[i+1] = {'element': atom_element,
                           'type': atom_type,
                           'xyz': np.array([x, y, z]),
                           'mm_charge': mm_charge}
 
         line = next(f)  # Skip the "connectivity" header
+        has_bonds = False
         if 'connectivity' in line.strip().lower():
             line = next(f)
+            has_bonds = True
         bonds = OrderedDict()
+        if version in ('09d', '16'):
+            bond_index_pos = 0
+            bond_list_pos = 1
+        elif version in ('03', '09a', '09b', '09c'):
+            bond_index_pos = 1
+            bond_list_pos = 6
+        else:
+            raise ValueError('`version` must be one of {}'.format(', '.join(supported_versions)))
         while line.strip():
             fields = line.strip().split()
-            bonds[int(fields[0])] = bond_list = []
-            for to_atom, bond_index in zip(fields[1::2], fields[2::2]):
+            bonds[int(fields[bond_index_pos])] = bond_list = []
+            for to_atom, bond_index in zip(fields[bond_list_pos::2], fields[bond_list_pos+1::2]):
                 bond_list.append((int(to_atom), float(bond_index)))
             line = next(f, '')
 

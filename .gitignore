@@ -96,3 +96,5 @@ ENV/
 sictwo/*
 tmp/*
 *.ipynb
+tests/outputs*
+tests/results*

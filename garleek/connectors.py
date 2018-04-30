@@ -5,16 +5,23 @@ from __future__ import print_function, absolute_import, division
 import os
 import shutil
 import numpy as np
-from .qm.gaussian import parse_gaussian_EIn, prepare_gaussian_EOu
+from .qm.gaussian import (parse_gaussian_EIn, prepare_gaussian_EOu,
+                          supported_versions as gaussian_supported_versions,
+                          default_version as gaussian_default_version)
 from .mm.tinker import prepare_tinker_xyz, run_tinker, prepare_tinker_key
 from .atom_types import parse as parse_atom_types
 from . import units as u
 
 
-def gaussian_tinker(qmargs, forcefield='mm3.prm', write_file=True):
-    layer, ein_filename, eou_filename, msg_file, fchk_file, matel_file = qmargs[:6]
+def gaussian_tinker(qmargs, forcefield='mm3.prm', write_file=True, qm_version='16', **kwargs):
+    if qm_version is None:
+        qm_version = gaussian_default_version
+    layer, ein_filename, eou_filename  = qmargs[:3]
+    # In Gaussian 09d and above, two more arguments are passed
+    # but we don't need them anyway
+    # msg_file, fchk_file, matel_file = qmargs[3:6]
     # Gaussian Input
-    ein = parse_gaussian_EIn(ein_filename)
+    ein = parse_gaussian_EIn(ein_filename, version=qm_version)
     # TINKER inputs
     xyz = prepare_tinker_xyz(ein['atoms'], ein['bonds'])
     key = prepare_tinker_key(forcefield)
@@ -38,3 +45,10 @@ def gaussian_tinker(qmargs, forcefield='mm3.prm', write_file=True):
         with open(eou_filename, mode='w') as f:
             f.write(eou_data)
     return eou_data
+
+
+CONNECTORS = {
+    'gaussian': {
+        'tinker': gaussian_tinker
+    }
+}

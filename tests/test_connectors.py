@@ -5,19 +5,37 @@ import os
 import sys
 import shutil
 import re
-import pytest
-import cclib
 from contextlib import contextmanager
 from distutils.spawn import find_executable
 from tempfile import mkdtemp
 from subprocess import call
+import pytest
 import numpy as np
+try:
+    import cclib
+    HAS_CCLIB = True
+except ImportError:
+    HAS_CCLIB = False
 
 from garleek.cli import frontend_app as frontend_garleek, _extant_file_types, _extant_file_prm
+
 here = os.path.abspath(os.path.dirname(__file__))
 data = os.path.join(here, 'data')
-gaussian_exe = find_executable('g16') or find_executable('g09') or 'g16'
 WORKING_DIR = os.getcwd()
+
+gaussian_exe = find_executable('g16') or find_executable('g09')  or 'g16'
+if 'g09a' in gaussian_exe:
+    gaussian_version = '09a'
+elif 'g09b' in gaussian_exe:
+    gaussian_version = '09b'
+elif 'g09c' in gaussian_exe:
+    gaussian_version = '09c'
+elif 'g09d' in gaussian_exe:
+    gaussian_version = '09d'
+elif 'g09' in gaussian_exe:
+    gaussian_version = '09d'
+else:
+    gaussian_version = '16'
 
 
 def isclose(a, b, rel_tol=1e-06, abs_tol=0.0):
@@ -33,19 +51,10 @@ def oniom_energy(path):
     return energy
 
 
-def check_errors(path):
-    last_lines = []
+def no_errors(path):
     with open(path) as f:
         for line in f:
-            last_lines.append(line)
-            last_lines = last_lines[-6:]
             if 'Failed to open output file from external program' in line:
-                for last_line in last_lines[:-1]:
-                    title, g_output, _ = last_line.split('"')
-                    if not os.path.isfile(g_output):
-                        continue
-                    g_output_copy = os.path.basename(path) + os.path.splitext(g_output)[1]
-                    shutil.copy(g_output,  os.path.join(WORKING_DIR, 'outputs', g_output_copy))
                 return False
     return True
 
@@ -68,8 +77,7 @@ def temporary_directory(enter=True, remove=True, **kwargs):
 def test_gaussian_tinker(directory):
     if directory.endswith('UFF'):
         pytest.skip()
-
-    with temporary_directory(remove=False) as tmp:
+    with temporary_directory() as tmp:
         # Original data
         data_original = os.path.join(data, directory)
         outfile_original = os.path.join(data_original, directory + '.out')
@@ -88,21 +96,23 @@ def test_gaussian_tinker(directory):
                 if line.startswith('# forcefield:'):
                     ff = line.split(':', 1)[1].strip()
         # patch inputfile
-        garleek_in = frontend_garleek(infile_copy, qm='gaussian', mm='tinker',
+        garleek_in = frontend_garleek(infile_copy, qm='gaussian_'+gaussian_version, mm='tinker',
                                       ff=_extant_file_prm(ff), types='atom.types')
 
         call([gaussian_exe, garleek_in])
         garleek_out = os.path.splitext(garleek_in)[0] + '.log'
 
         # Save output in working dir
+        if not os.path.exists(os.path.join(WORKING_DIR, 'outputs-'+gaussian_version)):
+            os.mkdir(os.path.join(WORKING_DIR, 'outputs-'+gaussian_version))
+        shutil.copy(garleek_in, os.path.join(WORKING_DIR, 'outputs-'+gaussian_version, os.path.basename(garleek_in)))
         assert os.path.isfile(garleek_out)
-        if not os.path.exists(os.path.join(WORKING_DIR, 'outputs')):
-            os.mkdir(os.path.join(WORKING_DIR, 'outputs'))
-        shutil.copy(garleek_out, os.path.join(WORKING_DIR, 'outputs', os.path.basename(garleek_out)))
-        assert check_errors(garleek_out)
+        shutil.copy(garleek_out, os.path.join(WORKING_DIR, 'outputs-'+gaussian_version, os.path.basename(garleek_out)))
+        assert no_errors(garleek_out)
         # Check values
-        cc_original = cclib.ccopen(outfile_original).parse()
-        cc_calculated = cclib.ccopen(garleek_out).parse()
-        assert isclose(cc_original.scfenergies[-1], cc_calculated.scfenergies[-1])
-        assert np.sqrt(np.mean(np.square(cc_original.atomcoords[-1]-cc_calculated.atomcoords[-1]))) < 0.001
         assert isclose(oniom_energy(outfile_original), oniom_energy(garleek_out))
+        if HAS_CCLIB:
+            cc_original = cclib.ccopen(outfile_original).parse()
+            cc_calculated = cclib.ccopen(garleek_out).parse()
+            assert isclose(cc_original.scfenergies[-1], cc_calculated.scfenergies[-1])
+            assert np.sqrt(np.mean(np.square(cc_original.atomcoords[-1]-cc_calculated.atomcoords[-1]))) < 0.001

@@ -14,6 +14,8 @@ from tempfile import NamedTemporaryFile
 import numpy as np
 from  .. import units as u
 
+supported_versions = '8.1',
+default_version = '8.1'
 
 tinker_testhess = os.environ.get('TINKER_TESTHESS') or find_executable('testhess')
 tinker_analyze = os.environ.get('TINKER_ANALYZE') or find_executable('analyze')
@@ -24,21 +26,24 @@ if not all([tinker_testhess, tinker_analyze, tinker_testgrad]):
     sys.exit('TINKER executables could not be found in $PATH')
 
 
-def prepare_tinker_input(atoms, bonds, forcefield=None):
+def prepare_tinker_input(atoms, bonds=None, forcefield=None):
     xyz = prepare_tinker_xyz(atoms, bonds)
     inpkey = prepare_tinker_key(forcefield)
     return xyz, inpkey
 
 
-def prepare_tinker_xyz(atoms, bonds):
+def prepare_tinker_xyz(atoms, bonds=None):
     out = [str(len(atoms))]
     for index, atom in atoms.items():
-        line = ([index, atom['element']] +
-                (atom['xyz'] * u.RBOHR_TO_ANGSTROM).tolist() +
-                [atom['type']] +
-                [bonded_to for (bonded_to, bond_index) in bonds[index]
-                 if bond_index >= 0.5])
-        out.append(' '.join(map(str, line)))
+        if not bonds:
+            atom_bonds = ''
+        else:
+            atom_bonds = ' '.join([str(bonded_to) for (bonded_to, bond_index) in bonds[index]
+                                   if bond_index >= 0.5])
+        line = '{index} E{element} {xyz[0]} {xyz[1]} {xyz[2]} {type} {bonds}'
+        line = line.format(index=index, element=atom['element'], type=atom['type'],
+                           xyz=atom['xyz'] * u.RBOHR_TO_ANGSTROM, bonds=atom_bonds)
+        out.append(line)
 
     return '\n'.join(out)
 
@@ -68,11 +73,13 @@ def prepare_tinker_key(forcefield):
     else:
         raise ValueError('TINKER key file must be .prm, .key or .par')
 
+
 def _decode(data):
     try:
         return data.decode()
     except UnicodeDecodeError:
         return data.decode('utf-8', 'ignore')
+
 
 def _parse_tinker_analyze(data):
     """
@@ -112,11 +119,10 @@ def _parse_tinker_testgrad(data):
     return np.array(gradients)
 
 
-def _parse_tinker_testhess(data, n_atoms):
+def _parse_tinker_testhess(hesfile, n_atoms):
     """
 
     """
-    hesfile = _decode(data).splitlines()[-1].split(':')[-1].strip()
     hessian = np.zeros((n_atoms * 3, n_atoms * 3))
     xyz_to_int = {'X': 0, 'Y': 1, 'Z': 2}
     with open(hesfile) as lines:
@@ -187,7 +193,8 @@ def run_tinker(xyz_data, n_atoms, key, energy=True, dipole_moment=True,
         command = [tinker_testhess, xyz, '-k', key, 'y', 'n']
         print('Running TINKER:', *command)
         output = check_output(command)
-        hessian = _parse_tinker_testhess(output, n_atoms)
+        hesfile = os.path.splitext(xyz)[0] + '.hes'
+        hessian = _parse_tinker_testhess(hesfile, n_atoms)
         if hessian is None:
             raise ValueError(error.format('hessian', ' '.join(command), output))
         results['hessian'] = hessian

@@ -6,17 +6,13 @@ from argparse import ArgumentParser, REMAINDER, SUPPRESS, ArgumentTypeError
 import os
 import sys
 from . import __version__
-from .entry_points import gaussian_tinker
+from .connectors import CONNECTORS
 from .atom_types import get_file, parse as parse_atom_types, BUILTIN_TYPES
 from .qm.gaussian import patch_gaussian_input
 
 _here = os.path.dirname(os.path.abspath(__file__))
 
-CONNECTORS = {
-    'gaussian': {
-        'tinker': gaussian_tinker
-    }
-}
+
 QM_ENGINES = set(CONNECTORS)
 MM_ENGINES = set([k for (qm, mm) in CONNECTORS.items() for k in mm])
 PATCHERS = {
@@ -50,6 +46,13 @@ def _extant_file_types(path):
     raise ArgumentTypeError("File `{}` cannot be found".format(path))
 
 
+def _parse_engine_string(word):
+    parts = word.split('_', 1)
+    if len(parts) == 1:
+        return parts[0], None
+    return parts[0], parts[1]
+
+
 def backend_app(argv=None):
     msg = 'Entering Garleek v{}'.format(__version__)
     underline = '='*len(msg)
@@ -57,12 +60,14 @@ def backend_app(argv=None):
     print(msg)
     print(underline)
     args = backend_args(argv)
+    qm_engine, qm_version = _parse_engine_string(args.qm)
+    mm_engine, mm_version = _parse_engine_string(args.mm)
     try:
-        connector = CONNECTORS[args.qm][args.mm]
+        connector = CONNECTORS[qm_engine][mm_engine]
     except KeyError:
         sys.exit("ERROR: Connector with QM={} and MM={} "
-                 "is not available".format(args.qm, args.mm))
-    connector(args.qmargs, forcefield=args.ff)
+                 "is not available".format(qm_engine, qm_engine))
+    connector(args.qmargs, forcefield=args.ff, qm_version=qm_version, mm_version=mm_version)
     print(underline)
     print('Exiting Garleek'.center(len(msg)))
     print(underline)
@@ -70,10 +75,14 @@ def backend_app(argv=None):
 
 def backend_args(argv=None):
     p = ArgumentParser()
-    p.add_argument('--qm', type=str, default='gaussian', choices=QM_ENGINES,
-                   help='QM program calling Garleek. Defaults to Gaussian')
-    p.add_argument('--mm', type=str, default='tinker', choices=MM_ENGINES,
-                   help='MM engine to use. Defaults to Tinker')
+    p.add_argument('--qm', type=str, default='gaussian',
+                   help='QM program calling Garleek. Defaults to Gaussian. '
+                        'Versions after an underscore: <engine>_<version>, '
+                        'like gaussian_16')
+    p.add_argument('--mm', type=str, default='tinker',
+                   help='MM engine to use. Defaults to Tinker. '
+                        'Versions after an underscore: <engine>_<version>, '
+                        'like tinker_8')
     p.add_argument('--ff', type=_extant_file, default='mmff.prm',
                    help='Forcefield to be used by the MM engine')
     # Arguments injected by the QM program
@@ -89,9 +98,10 @@ def frontend_app_main(argv=None):
 
 def frontend_app(input_file=None, types='uff_to_mm3', qm='gaussian', mm='tinker',
                  ff=_extant_file_prm('mm3.prm'), **kw):
+    qm_engine, qm_version = _parse_engine_string(qm)
     rosetta = parse_atom_types(get_file(types))
-    patcher = PATCHERS[qm]
-    patched = patcher(input_file, rosetta, engine=mm, forcefield=ff)
+    patcher = PATCHERS[qm_engine]
+    patched = patcher(input_file, rosetta, qm=qm, mm=mm, forcefield=ff)
     filename, ext = os.path.splitext(input_file)
     outname = filename + '.garleek' + ext
     with open(outname, 'w') as f:
