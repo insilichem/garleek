@@ -6,8 +6,8 @@ Interface Gaussian with MM programs via `external` keyword.
 
 Garleek is designed to be as simple as possible, using almost no 3rd party dependencies. You only need Python (2.7 or 3.4+) and NumPy. Then, of course, you need to install the software to be interfaced. Currently, we support:
 
-- **QM**: Gaussian 16 or 09D
-- **MM**: TINKER (you only need `analyze`, `testgrad` and `testhess` binaries; free for academy)
+- **QM**: Gaussian 16, 09A, or 09D.
+- **MM**: TINKER 8.1 (you only need `analyze`, `testgrad` and `testhess` binaries; free for academy)
 
 ## Usage
 
