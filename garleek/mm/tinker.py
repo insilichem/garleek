@@ -174,10 +174,10 @@ def run_tinker(xyz_data, n_atoms, key, energy=True, dipole_moment=True,
         output = check_output(command)
         energy, dipole = _parse_tinker_analyze(output)
         if energy is None:
-            raise ValueError(error.format('energy', ' '.join(command), output))
+            raise ValueError(error.format('energy', ' '.join(command), _decode(output)))
         results['energy'] = energy
         if dipole is None:
-            raise ValueError(error.format('dipole', ' '.join(command), output))
+            raise ValueError(error.format('dipole', ' '.join(command), _decode(output)))
         results['dipole_moment'] = dipole
 
     if gradients:
@@ -186,7 +186,7 @@ def run_tinker(xyz_data, n_atoms, key, energy=True, dipole_moment=True,
         output = check_output(command)
         gradients = _parse_tinker_testgrad(output)
         if gradients is None:
-            raise ValueError(error.format('gradients', ' '.join(command), output))
+            raise ValueError(error.format('gradients', ' '.join(command), _decode(output)))
         results['gradients'] = gradients
 
     if hessian:
@@ -196,7 +196,7 @@ def run_tinker(xyz_data, n_atoms, key, energy=True, dipole_moment=True,
         hesfile = os.path.splitext(xyz)[0] + '.hes'
         hessian = _parse_tinker_testhess(hesfile, n_atoms)
         if hessian is None:
-            raise ValueError(error.format('hessian', ' '.join(command), output))
+            raise ValueError(error.format('hessian', ' '.join(command), _decode(output)))
         results['hessian'] = hessian
 
     os.remove(xyz)
