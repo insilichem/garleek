@@ -7,6 +7,8 @@ Garleek - Gaussian bridge
 
 from __future__ import print_function, absolute_import, division
 from collections import OrderedDict
+import re
+import string
 import numpy as np
 
 supported_versions = '09a', '09b', '09c', '09d', '16'
@@ -25,14 +27,38 @@ def patch_gaussian_input(filename, atom_types, mm='tinker', qm='gaussian', force
         return line.replace('garleek', '"{}"'.format(command))
 
     def _patch_atom_type(line):
+        """
+        Atom types in Gaussian cannot contain the following characters:
+        `()=-`. Additionally, the type length is truncated to 8 chars in the
+        resulting *.EIn file.However, sometimes a type definition is given
+        after the charge:
+
+            C-C-0.597300(PDBName=C,ResName=ILE,ResNum=2)
+            O-O--0.567900(PDBName=O,ResName=ILE,ResNum=2)
+            N-N--0.415700(PDBName=N,ResName=VAL,ResNum=3)
+            H-H-0.271900(PDBName=H,ResName=VAL,ResNum=3)
+
+        While that extra PDB* info is not reported in the *.EIn, we do use
+        that for atom typing as well: if available, it will be used INSTEAD
+        of the original atom type with this syntax: `<ResName>_<PDBName>`
+        """
+
         fields = line.split()
         atom_fields = fields[0].split('-')
-        atom_type = atom_fields[1]
-        line = line.replace(atom_type, atom_types[atom_type], 1)
+        atom_matches = re.search(r'(\w+)-(\w+)(--?[0-9.]*)?(\(([\w=,]*)\))?', fields[0])
+        pdbinfo = atom_matches.group(5)
+        if pdbinfo:
+            pdb_dict = dict(map(string.upper, f.split('=')) for f in pdbinfo.split(','))
+            atom_fields[1] = pdb_dict['RESNAME'] + '_' + atom_fields[1]
+        atom_fields[1] = atom_types[atom_fields[1]]
+        patched_atom = '-'.join(atom_fields)
+        line = line.replace(fields[0], patched_atom, 1)
         if len(fields) > 6:
             link_atom = fields[6]
-            link_atom_type = link_atom.split('-')[1]
-            line = line.replace(link_atom_type, atom_types[link_atom_type])
+            link_atom_fields = link_atom.split('-')
+            link_atom_fields[1] = atom_types[link_atom_fields[1]]
+            patched_link_atom = '-'.join(link_atom_fields)
+            line = line.replace(link_atom, patched_link_atom, 1)
         return line
 
     skipped_mult_charges = False
