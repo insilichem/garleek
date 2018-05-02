@@ -83,7 +83,7 @@ def backend_args(argv=None):
                    help='MM engine to use. Defaults to Tinker. '
                         'Versions after an underscore: <engine>_<version>, '
                         'like tinker_8')
-    p.add_argument('--ff', type=_extant_file, default='mmff.prm',
+    p.add_argument('--ff', type=_extant_file_prm, default='mmff.prm',
                    help='Forcefield to be used by the MM engine')
     # Arguments injected by the QM program
     p.add_argument('qmargs', nargs=REMAINDER, help=SUPPRESS)
@@ -112,10 +112,14 @@ def frontend_app(input_file=None, types='uff_to_mm3', qm='gaussian', mm='tinker'
 def frontend_args(argv=None):
     p = ArgumentParser(prog='garleek')
     p.add_argument('--version', action='version', version='%(prog)s ' + __version__)
-    p.add_argument('--qm', type=str, default='gaussian', choices=QM_ENGINES,
-                   help='QM program calling Garleek. Defaults to Gaussian')
-    p.add_argument('--mm', type=str, default='tinker', choices=MM_ENGINES,
-                   help='MM engine to use. Defaults to Tinker')
+    p.add_argument('--qm', type=str, default='gaussian',
+                   help='QM program calling Garleek. Defaults to Gaussian. '
+                        'Versions after an underscore: <engine>_<version>, '
+                        'like gaussian_16')
+    p.add_argument('--mm', type=str, default='tinker',
+                   help='MM engine to use. Defaults to Tinker. '
+                        'Versions after an underscore: <engine>_<version>, '
+                        'like tinker_8')
     p.add_argument('--ff', type=_extant_file_prm, default='mm3.prm',
                    help='Forcefield to be used by the MM engine')
     p.add_argument('--types', type=_extant_file_types, default='uff_to_mm3',
