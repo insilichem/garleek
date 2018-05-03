@@ -1,3 +1,4 @@
 include MANIFEST.in README.md LICENSE
 include garleek/data/atom_types/*
-include garleek/data/prm/*
+include garleek/data/prm/*include versioneer.py
+include garleek/_version.py

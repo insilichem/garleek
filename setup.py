@@ -23,7 +23,8 @@ long_description = read('README.md')
 
 setup(
     name='garleek',
-    version=__version__,
+    version=versioneer.get_version(),
+    cmdclass=versioneer.get_cmdclass(),
     url='https://github.com/insilichem/garleek',
     author='Jaime Rodríguez-Guerra',
     author_email='jaime.rogue@gmail.com',
