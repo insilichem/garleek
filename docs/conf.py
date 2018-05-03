@@ -132,7 +132,7 @@ latex_elements = {
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
     (master_doc, 'Garleek.tex', 'Garleek Documentation',
-     'Jaime Rodríguez-Guerra, Ignacio Funes', 'manual'),
+     garleek.__author__, 'manual'),
 ]
 
 
