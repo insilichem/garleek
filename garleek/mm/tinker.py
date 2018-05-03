@@ -22,10 +22,6 @@ tinker_analyze = os.environ.get('TINKER_ANALYZE') or find_executable('analyze')
 tinker_testgrad = os.environ.get('TINKER_TESTGRAD') or find_executable('testgrad')
 
 
-if not all([tinker_testhess, tinker_analyze, tinker_testgrad]):
-    sys.exit('TINKER executables could not be found in $PATH')
-
-
 def prepare_tinker_input(atoms, bonds=None, forcefield=None):
     xyz = prepare_tinker_xyz(atoms, bonds)
     inpkey = prepare_tinker_key(forcefield)
@@ -160,6 +156,9 @@ def _parse_tinker_testhess(hesfile, n_atoms):
 
 def run_tinker(xyz_data, n_atoms, key, energy=True, dipole_moment=True,
                gradients=True, hessian=True):
+    if not all([tinker_testhess, tinker_analyze, tinker_testgrad]):
+        raise RuntimeError('TINKER executables could not be found in $PATH')
+
     error = 'Could not obtain {}! Command run:\n  {}\n\nTINKER output:\n{}'
 
     with NamedTemporaryFile(suffix='.xyz', delete=False, mode='w') as f_xyz:
