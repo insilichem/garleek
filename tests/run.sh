@@ -1,8 +1,15 @@
-#!/bin/bash
+#!/bin/bash -i
 
-# source /QFsoft/Modules/3.2.8/init/bash
-# source ~/.local/anaconda/etc/profile.d/conda.sh
+###
+## Run Garleek tests demo script
+## This script should me run with -i mode enabled
+####
 
+source /QFsoft/Modules/3.2.8/init/bash
+source ~/.local/anaconda/etc/profile.d/conda.sh
+
+
+## Load Gaussian
 if [[ $1 ]]; then
     GAUSSIAN_VERSION=$1
 else
@@ -26,9 +33,12 @@ elif [[ $GAUSSIAN_VERSION == 'g09local' ]]; then
 elif [[ $GAUSSIAN_VERSION == 'g16' ]]; then
     module load g16
 fi
+
+## Load Tinker
 module load tinker/8.1_gcc6.3.0_ompi-2.0.1_borg-test
-conda activate garleek27 || true
+## Load garleek Python environment
+conda activate garleek27
 
 export GAUSS_SCRDIR="$HOME/tmp/scratch"
-mkdir -p $GAUSS_SCRDIR
-pytest -v | tee results-$GAUSSIAN_VERSION.dat
+mkdir -p "$GAUSS_SCRDIR"
+pytest -v | tee "results-$GAUSSIAN_VERSION.dat"
