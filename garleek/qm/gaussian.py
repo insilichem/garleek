@@ -29,7 +29,7 @@ def patch_gaussian_input(filename, atom_types, mm='tinker', qm='gaussian', force
     def _patch_atom_type(line):
         """
         Atom types in Gaussian cannot contain the following characters:
-        `()=-`. Additionally, the type length is truncated to 8 chars in the
+        ``()=-``. Additionally, the type length is truncated to 8 chars in the
         resulting *.EIn file.However, sometimes a type definition is given
         after the charge:
 
@@ -40,7 +40,7 @@ def patch_gaussian_input(filename, atom_types, mm='tinker', qm='gaussian', force
 
         While that extra PDB* info is not reported in the *.EIn, we do use
         that for atom typing as well: if available, it will be used INSTEAD
-        of the original atom type with this syntax: `<ResName>_<PDBName>`
+        of the original atom type with this syntax: ``<ResName>_<PDBName>``
         """
 
         fields = line.split()
@@ -84,7 +84,7 @@ def patch_gaussian_input(filename, atom_types, mm='tinker', qm='gaussian', force
 
 def parse_gaussian_EIn(ein_filename, version=default_version):
     """
-    Parse the `*.EIn`file produced by Gaussian `external` keyword.
+    Parse the ``*.EIn``file produced by Gaussian ``external`` keyword.
 
     This file contains the following data (taken from http://gaussian.com/external)
 
@@ -95,10 +95,10 @@ def parse_gaussian_EIn(ein_filename, version=default_version):
 
     ...
 
-    `derivatives-requested` can be 0 (energy only), 1 (first derivatives)
+    ``derivatives-requested`` can be 0 (energy only), 1 (first derivatives)
     or 2 (second derivatives).
 
-    `version` must be one of `garleek.qm.gaussian.supported_versions`
+    ``version`` must be one of ``garleek.qm.gaussian.supported_versions``
     """
     with open(ein_filename) as f:
         n_atoms, derivatives, charge, spin = list(map(int, next(f).split()))
@@ -145,7 +145,7 @@ def parse_gaussian_EIn(ein_filename, version=default_version):
 def prepare_gaussian_EOu(n_atoms, energy, dipole_moment, gradients=None, hessian=None,
                          polarizability=None, dipole_polarizability=None):
     """
-    Generate the `*.EOu` file Gaussian expects after `external` launch.
+    Generate the ``*.EOu`` file Gaussian expects after ``external`` launch.
 
     After performing the MM calculations, Gaussian expects a file with the
     following information (all in atomic units; taken from
@@ -153,11 +153,17 @@ def prepare_gaussian_EOu(n_atoms, energy, dipole_moment, gradients=None, hessian
 
     Items                        Pseudo Code                            Line Format
     -------------------------------------------------------------------------------
-    energy, dipole-moment (xyz)  E, Dip(I), I=1,3                       4D20.12
-    gradient on atom (xyz)       FX(J,I), J=1,3; I=1,NAtoms             3D20.12
-    polarizability               Polar(I), I=1,6                        3D20.12
-    dipole derivatives           DDip(I), I=1,9*NAtoms                  3D20.12
-    force constants              FFX(I), I=1,(3*NAtoms*(3*NAtoms+1))/2  3D20.12
+    energy, dipole-moment (xyz)  E, Dip(I), I=1,3                           4D20.12
+    gradient on atom (xyz)       FX(J,I), J=1,3; I=1,NAtoms                 3D20.12
+    polarizability               Polar(I), I=1,6                            3D20.12
+    dipole derivatives           DDip(I), I=1,9*NAtoms                      3D20.12
+    force constants              FFX(I), I=1,(3*NAtoms*(3*NAtoms+1))/2      3D20.12
+
+    The second section is present only if first derivatives or frequencies were
+    requested, and the final section is present only if frequencies were requested.
+    In the latter case, the Hessian is given in lower triangular form: αij, i=1 to
+    N, j=1 to i. The dipole moment, polarizability, and dipole derivatives can be
+    zero if none are available.
     """
     lines = [[energy] + list(dipole_moment)]
     template = '{: 20.12e}'

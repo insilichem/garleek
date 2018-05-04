@@ -48,13 +48,13 @@ def prepare_tinker_key(forcefield):
     """
     Prepare a file ready for TINKER's -k option.
 
-    `forcefield` should be either a:
+    ``forcefield`` should be either a:
     - *.prm: proper forcefield file
     - *.key, *.par: key file that can call *.prm files and add more
       parameters
 
     If a .prm file is provided, a .key file will be written to
-    accommodate the forcefield in a `parameters *` call.
+    accommodate the forcefield in a ``parameters *`` call.
 
     Returns
     -------
@@ -79,7 +79,7 @@ def _decode(data):
 
 def _parse_tinker_analyze(data):
     """
-    Takes the output of TINKER's `analyze` program and obtain
+    Takes the output of TINKER's ``analyze`` program and obtain
     the potential energy (kcal/mole) and the dipole x, y, z
     components (debyes).
     """

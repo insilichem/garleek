@@ -13,6 +13,7 @@ Table of contents
     install.rst
     usage.rst
     tutorials.rst
+    developers.rst
     support.rst
 
 

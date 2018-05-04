@@ -1,6 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+"""
+Conversion factors are listed here
+
+The convention is to import this module when needed, using ``u`` as an alias:
+
+    >>> from garleek import units as u
+"""
+
 from __future__ import print_function, absolute_import, division
 
 
