@@ -8,7 +8,6 @@ Garleek - Gaussian bridge
 from __future__ import print_function, absolute_import, division
 from collections import OrderedDict
 import re
-import string
 import numpy as np
 
 supported_versions = '09a', '09b', '09c', '09d', '16'
@@ -48,7 +47,7 @@ def patch_gaussian_input(filename, atom_types, mm='tinker', qm='gaussian', force
         atom_matches = re.search(r'(\w+)-(\w+)(--?[0-9.]*)?(\(([\w=,]*)\))?', fields[0])
         pdbinfo = atom_matches.group(5)
         if pdbinfo:
-            pdb_dict = dict(map(string.upper, f.split('=')) for f in pdbinfo.split(','))
+            pdb_dict = dict(map(str.upper, f.split('=')) for f in pdbinfo.split(','))
             atom_fields[1] = pdb_dict['RESNAME'] + '_' + atom_fields[1]
         atom_fields[1] = atom_types[atom_fields[1]]
         patched_atom = '-'.join(atom_fields)
