@@ -19,7 +19,7 @@ def read(*filenames, **kwargs):
     return sep.join(buf)
 
 
-long_description = read('README.md')
+long_description = read('README.rst')
 
 
 setup(
