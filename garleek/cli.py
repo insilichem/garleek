@@ -2,6 +2,9 @@
 # -*- coding: utf-8 -*-
 
 """
+cli.py
+======
+
 This module contains the command-line interfaces for both
 ``garleek`` (the user-friendly patcher) and ``garleek-backend``
 (the program the QM engine calls behind the scenes to handle
@@ -19,13 +22,13 @@ In general, the worfklow is the following:
 1. Build a standard ONIOM calculation, with layers, link atoms and
    so on. The ``garleek`` keyword should be present in the MM layer
    configuration so the patcher can find it and properly configure it.
-2. Patch the QM input file with ``garleek``:
+2. Patch the QM input file with ``garleek``::
 
-    garleek --qm <QM_engine> -mm <MM_engine> --ff <MM_forcefield>
-    --types <QM/MM_atom_type_dictionary> QM_input_file.in
+    garleek --qm <QM_engine> -mm <MM_engine> --ff <MM_forcefield> \\
+            --types <QM/MM_atom_type_dictionary> QM_input_file.in
 
 3. Submit the calculation with the resulting patched file, named
-   ``QM_input_file.garleek.in`` with the desired QM software:
+   ``QM_input_file.garleek.in`` with the desired QM software::
 
     QM_engine QM_input_file.garleek.in
 
@@ -99,7 +102,30 @@ def backend_app_main(argv=None):
 
 
 def backend_app(qmargs, qm='gaussian', mm='tinker', ff=_extant_file_prm('mm3.prm'), **kw):
-    """ ``garleek-backend`` Python entry-point """
+    """
+    ``garleek-backend`` Python entry-point
+
+    Parameters
+    ----------
+    qmargs : tuple
+        CLI arguments passed by the QM engine. This can be anything!
+    qm : str
+        QM engine to use. Must be one of ``QM_ENGINES``, optionally followed
+        by ``_version`` to indicate slight differences in the QM logic.
+        For example, ``gaussian`` defaults to ``gaussian_16``, but
+        ``gaussian_09a`` exports the connectivity differently.
+    mm : str
+        MM engine to use. Must be one of ``MM_ENGINES``,optionally followed
+        by ``_version`` to indicate slight differences in the MM logic.
+    ff : str
+        Forcefield to use in the MM part. This can be anything that the MM
+        engine is able to use as a forcefield (normally a path to a file).
+
+    Returns
+    -------
+    result :
+        Whatever the QM-MM connector returns
+    """
     qm_engine, qm_version = _parse_engine_string(qm)
     mm_engine, mm_version = _parse_engine_string(mm)
     try:
@@ -107,7 +133,7 @@ def backend_app(qmargs, qm='gaussian', mm='tinker', ff=_extant_file_prm('mm3.prm
     except KeyError:
         sys.exit("ERROR: Connector with QM={} and MM={} "
                  "is not available".format(qm_engine, qm_engine))
-    connector(qmargs, forcefield=ff, qm_version=qm_version, mm_version=mm_version)
+    return connector(qmargs, forcefield=ff, qm_version=qm_version, mm_version=mm_version, **kw)
 
 
 def _backend_args(argv=None):
@@ -141,11 +167,44 @@ def frontend_app_main(argv=None):
 
 def frontend_app(input_file, types='uff_to_mm3', qm='gaussian', mm='tinker',
                  ff=_extant_file_prm('mm3.prm'), **kw):
-    """ ``garleek`` Python entry-point """
+    """
+    ``garleek`` Python entry-point
+
+    Parameters
+    ----------
+    input_file : str
+        Path to the QM input file that should be patched so Garleek can
+        handle the MM part through the desired MM engine.
+    types : str, default=uff_to_mm3
+        Path to a file listing the mapping between the QM atom types
+        present in ``input_file`` and the MM atom types expected
+        by the MM engine given the current forcefield.
+    qm : str
+        QM engine to use. Must be one of ``QM_ENGINES``, optionally followed
+        by ``_version`` to indicate slight differences in the QM logic.
+        For example, ``gaussian`` defaults to ``gaussian_16``, but
+        ``gaussian_09a`` exports the connectivity differently. This is only
+        needed so the patched ``garleek-backend`` calls include this argument.
+    mm : str
+        MM engine to use. Must be one of ``MM_ENGINES``,optionally followed
+        by ``_version`` to indicate slight differences in the MM logic. This is only
+        needed so the patched ``garleek-backend`` calls include this argument.
+    ff : str
+        Path to the forcefield the MM engine will be using to compute
+        values requested by the QM engine. It should conform to the
+        specified ``types`` mapping. This is only needed so the patched
+        ``garleek-backend`` calls include this argument.
+
+    Returns
+    -------
+    outname : str
+        Path to patched input file. It will always be a derivative of ``input_file``.
+        If ``input_file`` is ``input.in``, ``outname`` will be ``input.garleek.in``.
+    """
     qm_engine, qm_version = _parse_engine_string(qm)
     rosetta = parse_atom_types(get_file(types))
     patcher = PATCHERS[qm_engine]
-    patched = patcher(input_file, rosetta, qm=qm, mm=mm, forcefield=ff)
+    patched = patcher(input_file, rosetta, qm=qm, mm=mm, forcefield=ff, **kw)
     filename, ext = os.path.splitext(input_file)
     outname = filename + '.garleek' + ext
     with open(outname, 'w') as f:

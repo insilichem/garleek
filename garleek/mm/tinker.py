@@ -2,6 +2,9 @@
 # -*- coding: utf-8 -*-
 
 """
+mm.tinker.py
+============
+
 Garleek - Tinker bridge
 """
 
@@ -22,13 +25,27 @@ tinker_analyze = os.environ.get('TINKER_ANALYZE') or find_executable('analyze')
 tinker_testgrad = os.environ.get('TINKER_TESTGRAD') or find_executable('testgrad')
 
 
-def prepare_tinker_input(atoms, bonds=None, forcefield=None):
-    xyz = prepare_tinker_xyz(atoms, bonds)
-    inpkey = prepare_tinker_key(forcefield)
-    return xyz, inpkey
-
-
 def prepare_tinker_xyz(atoms, bonds=None):
+    """
+    Write a TINKER-style XYZ file. This is similar to a normal XYZ, but with more
+    fields::
+
+        atom_index element x y z type bonded_atom_1 bonded_order_1 ...
+
+    TINKER expects coordinates in Angstrom.
+
+    Parameters
+    ----------
+    atoms : OrderedDict
+        Set of atoms to write, following convention defined in :mod:`garleek.qm`.
+    bonds : OrderedDict
+        Connectivity information, following convention defined in :mod:`garleek.qm`.
+
+    Returns
+    -------
+    xyzblock : str
+        String with XYZ contents
+    """
     out = [str(len(atoms))]
     for index, atom in atoms.items():
         if not bonds:
@@ -49,16 +66,18 @@ def prepare_tinker_key(forcefield):
     Prepare a file ready for TINKER's -k option.
 
     ``forcefield`` should be either a:
-    - *.prm: proper forcefield file
-    - *.key, *.par: key file that can call *.prm files and add more
-      parameters
+
+    - ``*.prm``: proper forcefield file
+    - ``*.key``, ``*.par``: key file that can call ``*.prm files`` and
+      add more parameters
 
     If a .prm file is provided, a .key file will be written to
     accommodate the forcefield in a ``parameters *`` call.
 
     Returns
     -------
-    A TINKER .key file
+    path: str
+        Absolute path to the generated TINKER .key file
     """
     if forcefield.lower().endswith('.prm'):
         with open('garleek.key', 'w') as f:

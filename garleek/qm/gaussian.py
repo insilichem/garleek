@@ -2,6 +2,9 @@
 # -*- coding: utf-8 -*-
 
 """
+qm.gaussian.py
+==============
+
 Garleek - Gaussian bridge
 """
 
@@ -30,7 +33,7 @@ def patch_gaussian_input(filename, atom_types, mm='tinker', qm='gaussian', force
         Atom types in Gaussian cannot contain the following characters:
         ``()=-``. Additionally, the type length is truncated to 8 chars in the
         resulting *.EIn file.However, sometimes a type definition is given
-        after the charge:
+        after the charge::
 
             C-C-0.597300(PDBName=C,ResName=ILE,ResNum=2)
             O-O--0.567900(PDBName=O,ResName=ILE,ResNum=2)
@@ -83,21 +86,21 @@ def patch_gaussian_input(filename, atom_types, mm='tinker', qm='gaussian', force
 
 def parse_gaussian_EIn(ein_filename, version=default_version):
     """
-    Parse the ``*.EIn``file produced by Gaussian ``external`` keyword.
+    Parse the ``*.EIn`` file produced by Gaussian ``external`` keyword.
 
     This file contains the following data (taken from http://gaussian.com/external)
 
-    n_atoms  derivatives-requested  charge  spin
-    atom_name  x  y  z  MM-charge [atom_type]
-    atom_name  x  y  z  MM-charge [atom_type]
-    atom_name  x  y  z  MM-charge [atom_type]
+    ::
 
-    ...
+        n_atoms  derivatives-requested  charge  spin
+        atom_name  x  y  z  MM-charge [atom_type]
+        atom_name  x  y  z  MM-charge [atom_type]
+        atom_name  x  y  z  MM-charge [atom_type]
+        ...
 
-    ``derivatives-requested`` can be 0 (energy only), 1 (first derivatives)
-    or 2 (second derivatives).
-
-    ``version`` must be one of ``garleek.qm.gaussian.supported_versions``
+    - ``derivatives-requested`` can be ``0`` (energy only), ``1`` (first derivatives)
+      or ``2`` (second derivatives).
+    - ``version`` must be one of ``garleek.qm.gaussian.supported_versions``
     """
     with open(ein_filename) as f:
         n_atoms, derivatives, charge, spin = list(map(int, next(f).split()))
@@ -150,13 +153,19 @@ def prepare_gaussian_EOu(n_atoms, energy, dipole_moment, gradients=None, hessian
     following information (all in atomic units; taken from
     http://gaussian.com/external)
 
-    Items                        Pseudo Code                            Line Format
-    -------------------------------------------------------------------------------
-    energy, dipole-moment (xyz)  E, Dip(I), I=1,3                           4D20.12
-    gradient on atom (xyz)       FX(J,I), J=1,3; I=1,NAtoms                 3D20.12
-    polarizability               Polar(I), I=1,6                            3D20.12
-    dipole derivatives           DDip(I), I=1,9*NAtoms                      3D20.12
-    force constants              FFX(I), I=1,(3*NAtoms*(3*NAtoms+1))/2      3D20.12
+    +-----------------------------+---------------------------------------+-------------+
+    | Items                       | Pseudo Code                           | Line Format |
+    +=============================+=======================================+=============+
+    | energy, dipole-moment (xyz) | E, Dip(I), I=1,3                      |     4D20.12 |
+    +-----------------------------+---------------------------------------+-------------+
+    | gradient on atom (xyz)      | FX(J,I), J=1,3; I=1,NAtoms            |     3D20.12 |
+    +-----------------------------+---------------------------------------+-------------+
+    | polarizability              | Polar(I), I=1,6                       |     3D20.12 |
+    +-----------------------------+---------------------------------------+-------------+
+    | dipole derivatives          | DDip(I), I=1,9*NAtoms                 |     3D20.12 |
+    +-----------------------------+---------------------------------------+-------------+
+    | force constants             | FFX(I), I=1,(3*NAtoms*(3*NAtoms+1))/2 |     3D20.12 |
+    +-----------------------------+---------------------------------------+-------------+
 
     The second section is present only if first derivatives or frequencies were
     requested, and the final section is present only if frequencies were requested.

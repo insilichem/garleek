@@ -2,6 +2,9 @@
 # -*- coding: utf-8 -*-
 
 """
+atom_types.py
+=============
+
 Utilities to deal with ``atom_types`` mappings.
 
 These files are needed to convert atom types found in the QM
@@ -21,7 +24,7 @@ Comments can be inserted with a preceding ``#`` character, in its
 own line or after any valid content (just like Python). Blank lines
 are ignored as well.
 
-This valid syntax:
+This is valid syntax:
 
 ::
 
@@ -45,6 +48,9 @@ BUILTIN_TYPES = sorted(os.listdir(os.path.join((os.path.dirname(__file__)), 'dat
 
 
 def get_file(filename):
+    """
+    Get file from one of the default locations
+    """
     if os.path.exists(filename):
         return filename
     datapath = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'data', 'atom_types', filename)
@@ -54,6 +60,9 @@ def get_file(filename):
 
 
 def parse(atom_types_filename):
+    """
+    Parse ``atom_types`` file
+    """
     d = {}
     with open(atom_types_filename) as f:
         for line in f:

@@ -4,10 +4,6 @@ from __future__ import print_function, division, absolute_import
 import pytest
 
 
-def test_prepare_tinker_input():
-    pass
-
-
 def test_prepare_tinker_xyz():
     pass
 

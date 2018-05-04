@@ -2,6 +2,9 @@
 # -*- coding: utf-8 -*-
 
 """
+units.py
+========
+
 Conversion factors are listed here
 
 The convention is to import this module when needed, using ``u`` as an alias:

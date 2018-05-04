@@ -1,6 +1,6 @@
 """
-MM
-==
+mm/
+===
 
 The ``mm`` subpackage hosts all the code that handles
 calculations involving MM software.
@@ -8,14 +8,14 @@ calculations involving MM software.
 Each module in this subpackage is expected to perform
 the following tasks:
 
-    1. Take the standardized dictionary (as explained)
-       in the ``qm`` module and convert the contained
-       data into the representation requested by the
-       interfaced MM software (units included).
-    2. Calculate the requested data (depending on
-       ``derivatives`` value) with the MM software.
-    3. Organize the obtained data into a standardized
-       representation, as described below.
+1.  Take the standardized dictionary (as explained)
+    in the ``qm`` module and convert the contained
+    data into the representation requested by the
+    interfaced MM software (units included).
+2.  Calculate the requested data (depending on
+    ``derivatives`` value) with the MM software.
+3.  Organize the obtained data into a standardized
+    representation, as described below.
 
 Standardized object for interfaced data
 ---------------------------------------
@@ -35,6 +35,7 @@ document those in the docstring!)
     dipole_moment : np.array with shape (3,), optional
         Dipole X,Y,Z-Components
     polarizability : np.array with shape (6,), optional
+        Atom polarizability
     dipole_derivatives : np.array with shape (9*n_atom)
         Dipole derivatives with respect to X,Y,Z components
         for each atom

@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 """
-Connectors
-==========
+connectors.py
+=============
 
 This module hosts high-level functions that *connect* different
 engines together, handling input/output files delivery and
@@ -34,7 +34,7 @@ def gaussian_tinker(qmargs, forcefield='mm3.prm', write_file=True, qm_version='1
     When Gaussian does an ONIOM calculation with Garleek, the MM part
     is configured with the ``external`` keyword, meaning that Gaussian
     will write a series of files to disk and call the requested program.
-    Gaussian expects some data written back to an *.EOu file, which should
+    Gaussian expects some data written back to an ``*.EOu`` file, which should
     contain potential energy, dipole moment, polarizability and/or hessian
     matrix, depending on the calculation. The called program is expected
     to take those input files, convert them to the format expected by
@@ -54,8 +54,8 @@ def gaussian_tinker(qmargs, forcefield='mm3.prm', write_file=True, qm_version='1
         it's not usually a problem
 
     forcefield : str, optional=mm3.prm
-        Path to file listing the TINKER forcefield to use. It can be a *.prm
-        file or a *.key file. PRM files are full forcefields with no modifications.
+        Path to file listing the TINKER forcefield to use. It can be a ``*.prm``
+        file or a ``*.key`` file. PRM files are full forcefields with no modifications.
         KEY files can import PRM files with ``parameters`` and then list custom
         parameters below.
 
