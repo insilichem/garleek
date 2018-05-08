@@ -4734,3 +4734,134 @@ pibond4      57   58           4.600     0.1660
 pibond4      58   58           4.600     0.1660
 
 
+      ####################################################
+      ##                                                ##
+      ##  Additional atom types definitions (Garleek)   ##
+      ##                                                ##
+      ####################################################
+
+atom       165     Be    "Be system"                    4      9.012     0
+atom       166     Na    "Na system"                   11     22.990     0
+atom       167     Al    "Al system"                   13     26.982     0
+atom       168     K_    "K_ system"                   19     39.098     0
+atom       169     Sc    "Sc system"                   21     44.956     0
+atom       170     Ti    "Ti system"                   22     47.867     0
+atom       171     V_    "V_ system"                   23     50.942     0
+atom       172     Cr    "Cr system"                   24     51.993     0
+atom       173     Mn    "Mn system"                   25     54.938     0
+atom       174     Cu    "Cu system"                   29     63.546     0
+atom       175     Zn    "Zn system"                   30     65.380     0
+atom       176     Ga    "Ga system"                   31     69.723     0
+atom       177     As    "As system"                   33     74.922     0
+atom       178     Rb    "Rb system"                   37     85.468     0
+atom       179     Y_    "Y_ system"                   39     88.906     0
+atom       180     Zr    "Zr system"                   40     91.224     0
+atom       181     Nb    "Nb system"                   41     92.906     0
+atom       182     Mo    "Mo system"                   42     95.930     0
+atom       183     Tc    "Tc system"                   43     98.000     0
+atom       184     Ru    "Ru system"                   44    101.070     0
+atom       185     Rh    "Rh system"                   45    102.906     0
+atom       186     Pd    "Pd system"                   46    106.420     0
+atom       187     Ag    "Ag system"                   47    107.868     0
+atom       188     Cd    "Cd system"                   48    112.411     0
+atom       189     In    "In system"                   49    114.818     0
+atom       190     Sb    "Sb system"                   51    118.710     0
+atom       191     Cs    "Cs system"                   55    132.905     0
+atom       192     Hf    "Hf system"                   72    178.490     0
+atom       193     Ta    "Ta system"                   73    180.948     0
+atom       194     W_    "W_ system"                   74    183.840     0
+atom       195     Re    "Re system"                   75    186.207     0
+atom       196     Os    "Os system"                   76    190.230     0
+atom       197     Ir    "Ir system"                   77    192.217     0
+atom       198     Pt    "Pt system"                   78    195.084     0
+atom       199     Au    "Au system"                   79    196.967     0
+atom       200     Hg    "Hg system"                   80    200.590     0
+atom       201     Tl    "Tl system"                   81    204.380     0
+atom       202     Bi    "Bi system"                   83    208.980     0
+atom       203     Po    "Po system"                   84    209.000     0
+atom       204     At    "At system"                   85    210.000     0
+atom       205     Rn    "Rn system"                   86    222.000     0
+atom       206     Fr    "Fr system"                   87    223.000     0
+atom       207     Ra    "Ra system"                   88    226.000     0
+atom       208     Ac    "Ac system"                   89    227.000     0
+atom       209     Th    "Th system"                   90    232.038     0
+atom       210     Pa    "Pa system"                   91    231.036     0
+atom       211     U_    "U_ system"                   92    238.029     0
+atom       212     Np    "Np system"                   93    237.000     0
+atom       213     Pu    "Pu system"                   94    244.000     0
+atom       214     Am    "Am system"                   95    243.000     0
+atom       215     Cm    "Cm system"                   96    247.000     0
+atom       216     Bk    "Bk system"                   97    247.000     0
+atom       217     Cf    "Cf system"                   98    251.000     0
+atom       218     Es    "Es system"                   99    252.000     0
+atom       219     Fm    "Fm system"                  100    257.000     0
+atom       220     Md    "Md system"                  101    258.000     0
+atom       221     No    "No system"                  102    259.000     0
+atom       222     Lw    "Lw system"                  103    262.000     0
+
+      ####################################################
+      ##                                                ##
+      ##  Additional Van der Waals Parameters (Garleek) ##
+      ##                                                ##
+      ####################################################
+
+## TODO: Convert values from MM3 to MMFF 
+#            class             R*ii       alpha-i    N-i      G-i     da    
+mmffvdw       165              2.7450      0.0850       0.000    0.000   0.000
+mmffvdw       166              2.9830      0.0300       0.000    0.000   0.000
+mmffvdw       167              4.4990      0.5050       0.000    0.000   0.000
+mmffvdw       168              3.8120      0.0350       0.000    0.000   0.000
+mmffvdw       169              3.2950      0.0190       0.000    0.000   0.000
+mmffvdw       170              3.1750      0.0170       0.000    0.000   0.000
+mmffvdw       171              3.1440      0.0160       0.000    0.000   0.000
+mmffvdw       172              3.0230      0.0150       0.000    0.000   0.000
+mmffvdw       173              2.9610      0.0130       0.000    0.000   0.000
+mmffvdw       174              3.4950      0.0050       0.000    0.000   0.000
+mmffvdw       175              2.7630      0.1240       0.000    0.000   0.000
+mmffvdw       176              4.3830      0.4150       0.000    0.000   0.000
+mmffvdw       177              4.2300      0.3090       0.000    0.000   0.000
+mmffvdw       178              4.1140      0.0400       0.000    0.000   0.000
+mmffvdw       179              3.3450      0.0720       0.000    0.000   0.000
+mmffvdw       180              3.1240      0.0690       0.000    0.000   0.000
+mmffvdw       181              3.1650      0.0590       0.000    0.000   0.000
+mmffvdw       182              3.0520      0.0560       0.000    0.000   0.000
+mmffvdw       183              2.9880      0.0480       0.000    0.000   0.000
+mmffvdw       184              2.9630      0.0560       0.000    0.000   0.000
+mmffvdw       185              2.9290      0.0530       0.000    0.000   0.000
+mmffvdw       186              2.8990      0.0480       0.000    0.000   0.000
+mmffvdw       187              3.1480      0.0360       0.000    0.000   0.000
+mmffvdw       188              2.8480      0.2280       0.000    0.000   0.000
+mmffvdw       189              4.4630      0.5990       0.000    0.000   0.000
+mmffvdw       190              4.4200      0.4490       0.000    0.000   0.000
+mmffvdw       191              4.5170      0.0450       0.000    0.000   0.000
+mmffvdw       192              3.1410      0.0720       0.000    0.000   0.000
+mmffvdw       193              3.1700      0.0810       0.000    0.000   0.000
+mmffvdw       194              3.0690      0.0670       0.000    0.000   0.000
+mmffvdw       195              2.9540      0.0660       0.000    0.000   0.000
+mmffvdw       196              3.1200      0.0370       0.000    0.000   0.000
+mmffvdw       197              2.8400      0.0730       0.000    0.000   0.000
+mmffvdw       198              2.7540      0.0800       0.000    0.000   0.000
+mmffvdw       199              3.2930      0.0390       0.000    0.000   0.000
+mmffvdw       200              2.7050      0.3850       0.000    0.000   0.000
+mmffvdw       201              4.3470      0.6800       0.000    0.000   0.000
+mmffvdw       202              4.3700      0.5180       0.000    0.000   0.000
+mmffvdw       203              4.7090      0.3250       0.000    0.000   0.000
+mmffvdw       204              4.7500      0.2840       0.000    0.000   0.000
+mmffvdw       205              4.7650      0.2780       0.000    0.000   0.000
+mmffvdw       206              4.9000      0.0500       0.000    0.000   0.000
+mmffvdw       207              3.6770      0.4040       0.000    0.000   0.000
+mmffvdw       208              3.4780      0.0330       0.000    0.000   0.000
+mmffvdw       209              3.3960      0.0260       0.000    0.000   0.000
+mmffvdw       210              3.4240      0.0220       0.000    0.000   0.000
+mmffvdw       211              3.3950      0.0220       0.000    0.000   0.000
+mmffvdw       212              3.4240      0.0190       0.000    0.000   0.000
+mmffvdw       213              3.4240      0.0160       0.000    0.000   0.000
+mmffvdw       214              3.3810      0.0140       0.000    0.000   0.000
+mmffvdw       215              3.3260      0.0130       0.000    0.000   0.000
+mmffvdw       216              3.3390      0.0130       0.000    0.000   0.000
+mmffvdw       217              3.3130      0.0130       0.000    0.000   0.000
+mmffvdw       218              3.2990      0.0120       0.000    0.000   0.000
+mmffvdw       219              3.2860      0.0120       0.000    0.000   0.000
+mmffvdw       220              3.2740      0.0110       0.000    0.000   0.000
+mmffvdw       221              3.2480      0.0110       0.000    0.000   0.000
+mmffvdw       222              3.2360      0.0110       0.000    0.000   0.000
