@@ -12,6 +12,8 @@ from __future__ import print_function, absolute_import, division
 from collections import OrderedDict
 import re
 import numpy as np
+from ..atom_types import ELEMENTS
+
 
 supported_versions = '09a', '09b', '09c', '09d', '16'
 default_version = '16'
@@ -47,12 +49,18 @@ def patch_gaussian_input(filename, atom_types, mm='tinker', qm='gaussian', force
 
         fields = line.split()
         atom_fields = fields[0].split('-')
-        atom_matches = re.search(r'(\w+)-(\w+)(--?[0-9.]*)?(\(([\w=,]*)\))?', fields[0])
+        atom_matches = re.search(r'(\w+)-(\w+)?(--?[0-9.]*)?(\(([\w=,]*)\))?', fields[0])
         pdbinfo = atom_matches.group(5)
         if pdbinfo:
             pdb_dict = dict(map(str.upper, f.split('=')) for f in pdbinfo.split(','))
             atom_fields[1] = pdb_dict['RESNAME'] + '_' + atom_fields[1]
-        atom_fields[1] = atom_types[atom_fields[1]]
+        atom_type = atom_types.get(atom_fields[1].upper())  # Atom types are always uppercased!
+        if atom_type is None:
+            anumber = ELEMENTS.get(atom_fields[0].title(), atom_fields[0])
+            print('Warning: Atom type', atom_fields[1], 'not found, using element', atom_fields[0].title(), 
+                  'with atomic number', anumber, 'as fallback')
+            atom_type = atom_types[str(anumber)]
+        atom_fields[1] = atom_type
         patched_atom = '-'.join(atom_fields)
         line = line.replace(fields[0], patched_atom, 1)
         if len(fields) > 6:
@@ -77,7 +85,10 @@ def patch_gaussian_input(filename, atom_types, mm='tinker', qm='gaussian', force
                 orig_line = _patch_mm_keyword(orig_line)
             elif line and section == 2:
                 if skipped_mult_charges:
-                    orig_line = _patch_atom_type(orig_line)
+                    try:
+                        orig_line = _patch_atom_type(orig_line)
+                    except Exception as e:
+                        raise type(e)('{} at line `{}`'.format(e, orig_line))
                 else:
                     skipped_mult_charges = True
             lines.append(orig_line)
