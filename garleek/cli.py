@@ -50,29 +50,41 @@ from .atom_types import get_file, parse as parse_atom_types, BUILTIN_TYPES
 _here = os.path.dirname(os.path.abspath(__file__))
 
 
-def _extant_file(path):
+def _extant_file(path, abspath=False):
     if os.path.isfile(path):
-        return os.path.abspath(path)
+        if abspath:
+            return os.path.abspath(path)
+        return path
     raise ArgumentTypeError("File `{}` cannot be found".format(path))
 
 
-def _extant_file_prm(path):
+def _extant_file_prm(path, abspath=False):
     if os.path.isfile(path):
-        return os.path.abspath(path)
+        if abspath:
+            return os.path.abspath(path)
+        return path
     indatapath = os.path.join(_here, 'data', 'prm', path)
     if os.path.isfile(indatapath):
-        return indatapath
+        if abspath:
+            return indatapath
+        return path
     if os.path.isfile(indatapath + '.prm'):
-        return indatapath + '.prm'
+        if abspath:
+            return indatapath + '.prm'
+        return path
     raise ArgumentTypeError("File `{}` cannot be found".format(path))
 
 
-def _extant_file_types(path):
+def _extant_file_types(path, abspath=False):
     if os.path.isfile(path):
-        return os.path.abspath(path)
+        if abspath:
+            return os.path.abspath(path)
+        return path
     indatapath = os.path.join(_here, 'data', 'atom_types', path)
     if os.path.isfile(indatapath):
-        return indatapath
+        if abspath:
+            return indatapath
+        return path
     raise ArgumentTypeError("File `{}` cannot be found".format(path))
 
 
@@ -101,7 +113,7 @@ def backend_app_main(argv=None):
     print(underline)
 
 
-def backend_app(qmargs, qm='gaussian', mm='tinker', ff=_extant_file_prm('mm3.prm'), **kw):
+def backend_app(qmargs, qm='gaussian', mm='tinker', ff='mm3.prm', **kw):
     """
     ``garleek-backend`` Python entry-point
 
@@ -133,7 +145,8 @@ def backend_app(qmargs, qm='gaussian', mm='tinker', ff=_extant_file_prm('mm3.prm
     except KeyError:
         sys.exit("ERROR: Connector with QM={} and MM={} "
                  "is not available".format(qm_engine, qm_engine))
-    return connector(qmargs, forcefield=ff, qm_version=qm_version, mm_version=mm_version, **kw)
+    return connector(qmargs, forcefield=_extant_file_prm(ff, abspath=True),
+                     qm_version=qm_version, mm_version=mm_version, **kw)
 
 
 def _backend_args(argv=None):
@@ -166,7 +179,7 @@ def frontend_app_main(argv=None):
 
 
 def frontend_app(input_file, types='uff_to_mm3', qm='gaussian', mm='tinker',
-                 ff=_extant_file_prm('mm3.prm'), **kw):
+                 ff='mm3.prm', **kw):
     """
     ``garleek`` Python entry-point
 
@@ -178,7 +191,8 @@ def frontend_app(input_file, types='uff_to_mm3', qm='gaussian', mm='tinker',
     types : str, default=uff_to_mm3
         Path to a file listing the mapping between the QM atom types
         present in ``input_file`` and the MM atom types expected
-        by the MM engine given the current forcefield.
+        by the MM engine given the current forcefield. Atom types are
+        case INSENSITIVE. They will be uppercased upon processing.
     qm : str
         QM engine to use. Must be one of ``QM_ENGINES``, optionally followed
         by ``_version`` to indicate slight differences in the QM logic.
@@ -226,7 +240,7 @@ def _frontend_args(argv=None):
     p.add_argument('--ff', type=_extant_file_prm, default='mm3.prm',
                    help='Forcefield to be used by the MM engine')
     p.add_argument('--types', type=_extant_file_types, default='uff_to_mm3',
-                   help='Dictionary of QM-provided and MM-needed atom types. '
+                   help='Dictionary of QM-provided and MM-needed, case-insensitive atom types. '
                    'Can be either one of {{{}}}, or a user-provided '
                    'two-column file'.format(','.join(BUILTIN_TYPES)))
     p.add_argument('input_file', type=_extant_file, help='QM input file (must match '
