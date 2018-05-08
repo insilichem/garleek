@@ -1,4 +1,5 @@
 include MANIFEST.in README.rst LICENSE
 include garleek/data/atom_types/*
-include garleek/data/prm/*include versioneer.py
+include garleek/data/prm/*
+include versioneer.py
 include garleek/_version.py
