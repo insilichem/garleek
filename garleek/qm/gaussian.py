@@ -104,7 +104,7 @@ class GaussianPatcher(object):
     
     def patch(self):
         skipped_mult_charges = False
-        blocks = [['! Created with Garleek v' + __version__]]
+        blocks = [['! Created with Garleek v{}\n'.format(__version__)]]
         basis_index = []
         with open(self.filename) as f:
             for line in f:
