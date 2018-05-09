@@ -12,7 +12,7 @@ Garleek is designed to be as simple as possible, using almost no 3rd party depen
 
 
 Testing
-=======
+-------
 
 Unit-tests are provided in the ``tests/`` directory. Structures included are very small (5-20 atoms), so it should run reasonably fast locally. Input files are adjusted for 8 CPUs and 8GB RAM. To run them, you must install additional dependencies::
 

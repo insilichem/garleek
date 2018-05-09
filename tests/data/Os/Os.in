@@ -1,7 +1,7 @@
 %nprocshared=6
 %mem=6000MB
 %chk=test
-#p SP oniom(b3lyp/genecp:external=) geom=connectivity
+#p SP oniom(b3lyp/genecp:external) geom=connectivity
 
 ONIOM(B3LYP:MM3) TS OPT FREQ
 
