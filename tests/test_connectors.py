@@ -90,13 +90,18 @@ def test_gaussian_tinker(directory):
         # We are now in /tmp/garleek*****/A_1 or similar, which
         # contains copies of the original Gaussian files and types
         # guess forcefield specified in atom.types
-        ff = 'mm3.prm'
-        with open('atom.types') as f:
-            for line in f:
-                if line.startswith('# forcefield:'):
-                    ff = line.split(':', 1)[1].strip()
+        ff = 'qmmm3.prm'
+        types = 'uff_to_mm3'
+        if os.path.isfile(directory + '.key'):
+            ff = directory + '.key'
+        elif os.path.isfile('atom.types'):
+            types = 'atom.types'
+            with open(types) as f:
+                for line in f:
+                    if line.startswith('# forcefield:'):
+                        ff = line.split(':', 1)[1].strip()
         # patch inputfile
-        garleek_in = frontend_garleek(infile_copy, qm='gaussian_'+gaussian_version, mm='tinker', ff=ff, types='atom.types')
+        garleek_in = frontend_garleek(infile_copy, qm='gaussian_'+gaussian_version, mm='tinker', ff=ff, types=types)
 
         call([gaussian_exe, garleek_in])
         garleek_out = os.path.splitext(garleek_in)[0] + '.log'
