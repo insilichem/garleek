@@ -33,13 +33,13 @@ class GaussianPatcher(object):
         return line.startswith('#')
 
     def _patch_oniom_keyword(self, line):
-        matches = re.search(r'#.*oniom\(\w+\/([^\s:/]+):(external(=\S+)?)\).*', line, re.IGNORECASE)
+        matches = re.search(r'#.*oniom=?\(\w+\/([^\s:/]+):(external(=?\S+)?)\).*', line, re.IGNORECASE)
         if not matches:
             return line
         basis_patch = matches.group(1)
         if basis_patch:
             gen = '/gen' if basis_patch.lower() in ('gen', 'genecp') else '/' + basis_patch
-            self.basis_patch = basis_patch
+            self.basis_patch = basis_patch.lower()
         command = 'garleek-backend --qm {} --mm {}'.format(self.qm, self.mm)
         if self.forcefield:
             command += " --ff '{}'".format(self.forcefield)
@@ -110,8 +110,7 @@ class GaussianPatcher(object):
                             raise type(e)('{} at line `{}`'.format(e, orig_line))
                     else:
                         skipped_mult_charges = True
-                elif len(blocks) > 4 and line.strip() == '****':
-                    # We are in the basis set definition section
+                elif len(blocks) > 3 and line.strip() == '****' and len(blocks)-1 not in basis_index:
                     basis_index.append(len(blocks) - 1)
                 blocks[-1].append(orig_line)
         
