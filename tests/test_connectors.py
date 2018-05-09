@@ -96,8 +96,7 @@ def test_gaussian_tinker(directory):
                 if line.startswith('# forcefield:'):
                     ff = line.split(':', 1)[1].strip()
         # patch inputfile
-        garleek_in = frontend_garleek(infile_copy, qm='gaussian_'+gaussian_version, mm='tinker',
-                                      ff=_extant_file_prm(ff), types='atom.types')
+        garleek_in = frontend_garleek(infile_copy, qm='gaussian_'+gaussian_version, mm='tinker', ff=ff, types='atom.types')
 
         call([gaussian_exe, garleek_in])
         garleek_out = os.path.splitext(garleek_in)[0] + '.log'

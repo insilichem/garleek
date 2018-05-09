@@ -19,18 +19,33 @@ supported_versions = '09a', '09b', '09c', '09d', '16'
 default_version = '16'
 
 
-def patch_gaussian_input(filename, atom_types, mm='tinker', qm='gaussian', forcefield=None):
+class GaussianPatcher(object):
 
-    def _is_route(line):
-        return line.startswith('#') and 'external=' in line.lower()
+    def __init__(self, filename, atom_types, mm='tinker', qm='gaussian', forcefield=None):
+        self.filename = filename
+        self.atom_types = atom_types
+        self.mm = mm
+        self.qm = qm
+        self.forcefield = forcefield
+        self.basis_patch = None
+    
+    def _is_route(self, line):
+        return line.startswith('#')
 
-    def _patch_mm_keyword(line):
-        command = 'garleek-backend --qm {} --mm {}'.format(qm, mm)
-        if forcefield:
-            command += " --ff '{}'".format(forcefield)
-        return line.replace('garleek', '"{}"'.format(command))
-
-    def _patch_atom_type(line):
+    def _patch_oniom_keyword(self, line):
+        matches = re.search(r'#.*oniom\(\w+\/([^\s:/]+):(external(=\S+)?)\).*', line, re.IGNORECASE)
+        if not matches:
+            return line
+        basis_patch = matches.group(1)
+        if basis_patch:
+            gen = '/gen' if basis_patch.lower() in ('gen', 'genecp') else '/' + basis_patch
+            self.basis_patch = basis_patch
+        command = 'garleek-backend --qm {} --mm {}'.format(self.qm, self.mm)
+        if self.forcefield:
+            command += " --ff '{}'".format(self.forcefield)
+        return line.replace(matches.group(2), 'external="{}"{}'.format(command, gen))
+    
+    def _patch_atom_type(self, line):
         """
         Atom types in Gaussian cannot contain the following characters:
         ``()=-``. Additionally, the type length is truncated to 8 chars in the
@@ -49,50 +64,73 @@ def patch_gaussian_input(filename, atom_types, mm='tinker', qm='gaussian', force
 
         fields = line.split()
         atom_fields = fields[0].split('-')
-        atom_matches = re.search(r'(\w+)-(\w+)?(--?[0-9.]*)?(\(([\w=,]*)\))?', fields[0])
+        atom_matches = re.search(
+            r'(\w+)-(\w+)?(--?[0-9.]*)?(\(([\w=,]*)\))?', fields[0])
         pdbinfo = atom_matches.group(5)
         if pdbinfo:
-            pdb_dict = dict(map(str.upper, f.split('=')) for f in pdbinfo.split(','))
+            pdb_dict = dict(map(str.upper, f.split('='))
+                            for f in pdbinfo.split(','))
             atom_fields[1] = pdb_dict['RESNAME'] + '_' + atom_fields[1]
-        atom_type = atom_types.get(atom_fields[1].upper())  # Atom types are always uppercased!
+        # Atom types are always uppercased!
+        atom_type = self.atom_types.get(atom_fields[1].upper())
         if atom_type is None:
             anumber = ELEMENTS.get(atom_fields[0].title(), atom_fields[0])
-            print('Warning: Atom type', atom_fields[1], 'not found, using element', atom_fields[0].title(), 
+            print('Warning: Atom type', atom_fields[1], 'not found, using element', atom_fields[0].title(),
                   'with atomic number', anumber, 'as fallback')
-            atom_type = atom_types[str(anumber)]
+            atom_type = self.atom_types[str(anumber)]
         atom_fields[1] = atom_type
         patched_atom = '-'.join(atom_fields)
         line = line.replace(fields[0], patched_atom, 1)
         if len(fields) > 6:
             link_atom = fields[6]
             link_atom_fields = link_atom.split('-')
-            link_atom_fields[1] = atom_types[link_atom_fields[1]]
+            link_atom_fields[1] = self.atom_types[link_atom_fields[1]]
             patched_link_atom = '-'.join(link_atom_fields)
             line = line.replace(link_atom, patched_link_atom, 1)
         return line
+    
+    def patch(self):
+        skipped_mult_charges = False
+        blocks = [[]]
+        basis_index = []
+        with open(self.filename) as f:
+            for line in f:
+                orig_line, line = line, line.strip()
+                if line.startswith('!'):
+                    pass
+                elif not line:
+                    blocks.append([])
+                elif self._is_route(line):
+                    orig_line = self._patch_oniom_keyword(orig_line)
+                elif line and len(blocks) == 3:
+                    if skipped_mult_charges:
+                        try:
+                            orig_line = self._patch_atom_type(orig_line)
+                        except Exception as e:
+                            raise type(e)('{} at line `{}`'.format(e, orig_line))
+                    else:
+                        skipped_mult_charges = True
+                elif len(blocks) > 4 and line.strip() == '****':
+                    # We are in the basis set definition section
+                    basis_index.append(len(blocks) - 1)
+                blocks[-1].append(orig_line)
+        
+        # patch basis set now
+        if len(basis_index) == 1:
+            idx = basis_index[0]
+            if self.basis_patch == 'gen':
+                blocks.insert(idx, blocks[idx])
+                blocks.insert(idx, blocks[idx])
+            elif self.basis_patch == 'genecp':
+                blocks.insert(idx, blocks[idx])
+                blocks.insert(idx+3, blocks[idx+1])
+    
+        return ''.join([l for b in blocks for l in b])
 
-    skipped_mult_charges = False
-    section = 0
-    lines = []
-    with open(filename) as f:
-        for line in f:
-            orig_line, line = line, line.strip()
-            if line.startswith('!'):
-                pass
-            elif not line:
-                section += 1
-            elif _is_route(line):
-                orig_line = _patch_mm_keyword(orig_line)
-            elif line and section == 2:
-                if skipped_mult_charges:
-                    try:
-                        orig_line = _patch_atom_type(orig_line)
-                    except Exception as e:
-                        raise type(e)('{} at line `{}`'.format(e, orig_line))
-                else:
-                    skipped_mult_charges = True
-            lines.append(orig_line)
-    return ''.join(lines)
+
+def patch_gaussian_input(*a, **kw):      
+    patcher = GaussianPatcher(*a, **kw)
+    return patcher.patch()
 
 
 def parse_gaussian_EIn(ein_filename, version=default_version):
