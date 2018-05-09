@@ -12,6 +12,7 @@ from __future__ import print_function, absolute_import, division
 from collections import OrderedDict
 import re
 import numpy as np
+from .. import __version__
 from ..atom_types import ELEMENTS
 
 
@@ -21,12 +22,13 @@ default_version = '16'
 
 class GaussianPatcher(object):
 
-    def __init__(self, filename, atom_types, mm='tinker', qm='gaussian', forcefield=None):
+    def __init__(self, filename, atom_types, mm='tinker', qm='gaussian', forcefield=None, version=default_version):
         self.filename = filename
         self.atom_types = atom_types
         self.mm = mm
         self.qm = qm
         self.forcefield = forcefield
+        self.version = version
         self.basis_patch = None
     
     def _is_route(self, line):
@@ -45,6 +47,18 @@ class GaussianPatcher(object):
             command += " --ff '{}'".format(self.forcefield)
         return line.replace(matches.group(2), 'external="{}"{}'.format(command, gen))
     
+    def _patch_opt_keyword(self, line):
+        searches = re.search(r'#.*((opt\w*)=?\(?([^\s\)]+)?\)?).*', line, re.IGNORECASE)
+        if not searches:
+            return line
+        matches = searches.groups()
+        opt_options = matches[2] or ''
+        if 'nomicro' in opt_options.lower():  # already present, not needed
+            return line
+        print('Patching opt with nomicro...')
+        opt_options = ','.join(['nomicro'] + (opt_options.split(',') if opt_options else []))
+        return line.replace(matches[0], '{}({})'.format(matches[1], opt_options))
+
     def _patch_atom_type(self, line):
         """
         Atom types in Gaussian cannot contain the following characters:
@@ -64,8 +78,7 @@ class GaussianPatcher(object):
 
         fields = line.split()
         atom_fields = fields[0].split('-')
-        atom_matches = re.search(
-            r'(\w+)-(\w+)?(--?[0-9.]*)?(\(([\w=,]*)\))?', fields[0])
+        atom_matches = re.search(r'(\w+)-(\w+)?(--?[0-9.]*)?(\(([\w=,]*)\))?', fields[0])
         pdbinfo = atom_matches.group(5)
         if pdbinfo:
             pdb_dict = dict(map(str.upper, f.split('='))
@@ -91,17 +104,18 @@ class GaussianPatcher(object):
     
     def patch(self):
         skipped_mult_charges = False
-        blocks = [[]]
+        blocks = [['! Created with Garleek v' + __version__]]
         basis_index = []
         with open(self.filename) as f:
             for line in f:
                 orig_line, line = line, line.strip()
                 if line.startswith('!'):
-                    pass
+                    continue
                 elif not line:
                     blocks.append([])
                 elif self._is_route(line):
                     orig_line = self._patch_oniom_keyword(orig_line)
+                    orig_line = self._patch_opt_keyword(orig_line)
                 elif line and len(blocks) == 3:
                     if skipped_mult_charges:
                         try:
@@ -118,9 +132,11 @@ class GaussianPatcher(object):
         if len(basis_index) == 1:
             idx = basis_index[0]
             if self.basis_patch == 'gen':
+                print('Patching basis sets for MM...')
                 blocks.insert(idx, blocks[idx])
                 blocks.insert(idx, blocks[idx])
             elif self.basis_patch == 'genecp':
+                print('Patching basis sets for MM...')
                 blocks.insert(idx, blocks[idx])
                 blocks.insert(idx+3, blocks[idx+1])
     
