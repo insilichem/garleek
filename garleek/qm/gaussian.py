@@ -30,25 +30,29 @@ class GaussianPatcher(object):
         self.forcefield = forcefield
         self.version = version
         self.basis_patch = None
-    
+
+        self._external_rx = r'#.*oniom=?\(\w+\/([^\s:/]+):(external(=?("[^"]+"|\w+)))(\/\S+)?\).*'
+        self._opt_rx = r'#.*((opt\w*)=?\(?([^\s\)]+)?\)?).*'
+
     def _is_route(self, line):
         return line.startswith('#')
 
     def _patch_oniom_keyword(self, line):
-        matches = re.search(r'#.*oniom=?\(\w+\/([^\s:/]+):(external(=?\S+)?)\).*', line, re.IGNORECASE)
+        matches = re.search(self._external_rx, line, re.IGNORECASE)
         if not matches:
             return line
         basis_patch = matches.group(1)
-        if basis_patch:
+        mm_basis = matches.group(5)
+        if basis_patch and mm_basis is None:
             gen = '/gen' if basis_patch.lower() in ('gen', 'genecp') else '/' + basis_patch
             self.basis_patch = basis_patch.lower()
         command = 'garleek-backend --qm {} --mm {}'.format(self.qm, self.mm)
         if self.forcefield:
             command += " --ff '{}'".format(self.forcefield)
         return line.replace(matches.group(2), 'external="{}"{}'.format(command, gen))
-    
+
     def _patch_opt_keyword(self, line):
-        searches = re.search(r'#.*((opt\w*)=?\(?([^\s\)]+)?\)?).*', line, re.IGNORECASE)
+        searches = re.search(self._opt_rx, line, re.IGNORECASE)
         if not searches:
             return line
         matches = searches.groups()
@@ -101,7 +105,7 @@ class GaussianPatcher(object):
             patched_link_atom = '-'.join(link_atom_fields)
             line = line.replace(link_atom, patched_link_atom, 1)
         return line
-    
+
     def patch(self):
         skipped_mult_charges = False
         blocks = [['! Created with Garleek v{}\n'.format(__version__)]]
@@ -127,7 +131,7 @@ class GaussianPatcher(object):
                 elif len(blocks) > 3 and line.strip() == '****' and len(blocks)-1 not in basis_index:
                     basis_index.append(len(blocks) - 1)
                 blocks[-1].append(orig_line)
-        
+
         # patch basis set now
         if len(basis_index) == 1:
             idx = basis_index[0]
@@ -139,11 +143,11 @@ class GaussianPatcher(object):
                 print('Patching basis sets for MM...')
                 blocks.insert(idx, blocks[idx])
                 blocks.insert(idx+3, blocks[idx+1])
-    
+
         return ''.join([l for b in blocks for l in b])
 
 
-def patch_gaussian_input(*a, **kw):      
+def patch_gaussian_input(*a, **kw):
     patcher = GaussianPatcher(*a, **kw)
     return patcher.patch()
 
