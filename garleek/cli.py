@@ -6,26 +6,26 @@ cli.py
 ======
 
 This module contains the command-line interfaces for both
-``garleek`` (the user-friendly patcher) and ``garleek-backend``
+``garleek-prepare`` (the user-friendly patcher) and ``garleek-backend``
 (the program the QM engine calls behind the scenes to handle
 the MM calculations).
 
-``garleek`` takes a naive QM input file for ONIOM and patches it so
+``garleek-preare`` takes a naive QM input file for ONIOM and patches it so
 the MM part is performed through ``garleek-backend``, which will be
 interfacing with the configured MM engine. For this to work, the
 atom types featured in the QM input file should be understandable
-by the MM engine, so ``garleek`` will replace those too, using the
+by the MM engine, so ``garleek-prepare`` will replace those too, using the
 ``atom_types`` file mapping to do so.
 
 In general, the worfklow is the following:
 
 1. Build a standard ONIOM calculation, with layers, link atoms and
-   so on. The ``garleek`` keyword should be present in the MM layer
+   so on. The ``garleek-prepare`` keyword should be present in the MM layer
    configuration so the patcher can find it and properly configure it.
-2. Patch the QM input file with ``garleek``::
+2. Patch the QM input file with ``garleek-prepare``::
 
-    garleek --qm <QM_engine> -mm <MM_engine> --ff <MM_forcefield> \\
-            --types <QM/MM_atom_type_dictionary> QM_input_file.in
+    garleek-prepare --qm <QM_engine> -mm <MM_engine> --ff <MM_forcefield> \\
+                    --types <QM/MM_atom_type_dictionary> QM_input_file.in
 
 3. Submit the calculation with the resulting patched file, named
    ``QM_input_file.garleek.in`` with the desired QM software::
@@ -101,12 +101,12 @@ def _parse_engine_string(word):
 
 def backend_app_main(argv=None):
     """ ``garleek-backend`` CLI entry-point """
+    args = _backend_args(argv)
     msg = 'Entering Garleek v{}'.format(__version__)
     underline = '='*len(msg)
     print(underline)
     print(msg)
     print(underline)
-    args = _backend_args(argv)
     backend_app(**vars(args))
     print(underline)
     print('Exiting Garleek'.center(len(msg)))
@@ -150,7 +150,9 @@ def backend_app(qmargs, qm='gaussian', mm='tinker', ff='mm3.prm', **kw):
 
 
 def _backend_args(argv=None):
-    p = ArgumentParser()
+    p = ArgumentParser(description='Garleek executable called by QM engines '
+                                   'to launch MM calculations. Users SHOULD NOT '
+                                   'run this. Use `garleek-prepare` instead!')
     p.add_argument('--qm', type=str, default='gaussian',
                    help='QM program calling Garleek. Defaults to Gaussian. '
                         'Versions after an underscore: <engine>_<version>, '
@@ -173,15 +175,16 @@ def _backend_args(argv=None):
 
 
 def frontend_app_main(argv=None):
-    """ ``garleek`` CLI entry-point """
+    """ ``garleek-prepare`` CLI entry-point """
     args = _frontend_args(argv)
-    frontend_app(**vars(args))
+    out = frontend_app(**vars(args))
+    print('Input file', out, 'is now ready! Please run it with your ', args.qm, 'executable!')
 
 
 def frontend_app(input_file, types='uff_to_mm3', qm='gaussian', mm='tinker',
                  ff='mm3.prm', **kw):
     """
-    ``garleek`` Python entry-point
+    ``garleek-prepare`` Python entry-point
 
     Parameters
     ----------
@@ -227,7 +230,9 @@ def frontend_app(input_file, types='uff_to_mm3', qm='gaussian', mm='tinker',
 
 
 def _frontend_args(argv=None):
-    p = ArgumentParser(prog='garleek')
+    p = ArgumentParser(prog='garleek-prepare',
+        description='This executable patches QM input files so they are compatible '
+                    'with the selected MM engine.')
     p.add_argument('--version', action='version', version='%(prog)s ' + __version__)
     p.add_argument('--qm', type=str, default='gaussian',
                    help='QM program calling Garleek. Defaults to Gaussian. '
@@ -244,7 +249,7 @@ def _frontend_args(argv=None):
                    'Can be either one of {{{}}}, or a user-provided '
                    'two-column file'.format(','.join(BUILTIN_TYPES)))
     p.add_argument('input_file', type=_extant_file, help='QM input file (must match '
-                  '--qm software)')
+                  '--qm software requirements.)')
 
     return p.parse_args(argv)
 

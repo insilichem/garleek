@@ -16,7 +16,7 @@ his or her own conversions if needed.
 
 An ``atom_types`` file format is very simple: just two
 columns of plain text, where the first field is the QM type
-and the MM type is in the second field. ``garleek`` will just
+and the MM type is in the second field. ``garleek-prepare`` will just
 replace the QM types with the corresponding MM type. If a QM type
 is not found in the file, it will throw an error.
 

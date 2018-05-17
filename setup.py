@@ -45,7 +45,7 @@ setup(
     install_requires=['numpy'],
     entry_points='''
         [console_scripts]
-        garleek=garleek.cli:frontend_app_main
+        garleek-prepare=garleek.cli:frontend_app_main
         garleek-backend=garleek.cli:backend_app_main
         '''
 )

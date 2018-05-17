@@ -22,8 +22,8 @@ Organometallic species
 
 WIP!
 
-Protein-ligand structure
-........................
+Specific details for biomolecules
+.................................
 
 When biomolecules are involved in a QM/MM calculation, protein-specific forcefields are needed. Fortunately, TINKER `provides several forcefields <https://dasher.wustl.edu/tinker/distribution/params/>`_ that fall in this category:
 
