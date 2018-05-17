@@ -1,29 +1,155 @@
+The following tutorials assume you have already installed Garleek, Gaussian and TINKER. If that's not the case, please refer to :ref:`installation`.
+
 .. _tutorials:
 
-Tutorials
-=========
-
-.. note::
-
-    The following tutorials assume you have already installed Garleek, Gaussian and TINKER. If that's not the case, please refer to :ref:`installation`.
-
-Gaussian-Tinker ONIOM
+A simple CH4 molecule
 ---------------------
-
-Simple organic molecule
-.......................
 
 Organic species are easy to model, but with ONIOM there's always the added difficulty of setting up layers, link atoms and so on. This simple example will help describe the general workflow for setting up a two-layer QM:MM ONIOM job in GaussView.
 
+.. tip::
 
+    The ``tests/data/`` directory in the Garleek source contains several toy examples that are easy and fast to compute. Use them for your own tests and training!
+
+01 - Build the input file
+.........................
+
+In GaussView or any similar software build a CH4 molecule and create and B3LYP/UFF ONIOM input file named ``tutorial1.in``. You should obtain something like this::
+
+    %nprocshared=8
+    %mem=8000MB
+    %chk=tutorial1
+    #p opt oniom(B3LYP/6-31G*:UFF) geom=connectivity
+
+    ONIOM(QM:MM) OPT FREQ with Garleek
+
+    0 1 0 1 0 1
+     C-C_3            0    0.44534414   -2.95546554    0.00000000 H
+     H-H_             0    0.80199857   -3.96427554    0.00000000 H
+     H-H_             0    0.80201698   -2.45106735    0.87365150 L H-H_ 1
+     H-H_             0    0.80201698   -2.45106735   -0.87365150 H
+     H-H_             0   -0.62465586   -2.95545236    0.00000000 H
+
+    1 2 1.0 3 1.0 4 1.0 5 1.0
+    2
+    3
+    4
+    5
+
+
+.. note::
+
+    In ONIOM calculations, the geometry is specified slightly differently. First, there are more than one ``charge multiplicity``. These correspond to the QM, MM real and MM model layers. Additionally, each atom line has more information:
+
+    - The first field is usually the elemeny symbol or its atomic number. In ONIOM, the element is extended with a second subfield for the atom type. In the first atom of the example above (``C-C_3``), ``C`` is the symbol for carbon, and ``C_3`` its UFF atom type (sp3 carbon). If the forcefield specified is not UFF, the atom type subfield can (and most probably will) be different.
+    - A new column before the cartesian coordinates is present. Its value (``0`` or ``-1``) determines if the atom is frozen or not.
+    - After the cartesian coordinates, at least one additional column is present, listing the ONIOM layer: ``H`` (high), ``M`` (middle), or ``L`` (low).
+    - The layer column can be followed by the link atom specifiers, when there's a covalent bond between atoms sitting in different layers. It must contain the link atom specifier (element + atom type) and the serial index of the bonded atom. In the only example above, the link atom is a simple hydrogen atom that will replace the originally bonded carbon atom.
+
+    The connectivity matrix is always needed because the MM program usually requires it. It lists every atom by serial number, and, if it is bonded to any atom(s), the serial number of those atoms, each followed by its corresponding bond order. In the example above, the atom 1 (carbon) is bonded to they hydrogens (atoms 2, 3, 4 and 5) with single bonds (bond order = 1.0).
+
+This file will run just fine in Gaussian, but it will use the simple UFF forcefield. If you want to use a more accurate one (other than Amber and Dreiding), Garleek is needed. Let's try to use the MMFF forcefield for this molecule.
+
+02 - Patch the input file with Garleek
+......................................
+
+The file as created by GaussView needs some modifications to work with Garleek. First thing you must do is change the MM layer in the ONIOM keyword. For Garleek to work, the ``external`` keyword must be set as the MM layer. In this case, you would need to make this change::
+
+    From...
+    #p oniom(B3LYP/6-31G*:UFF) geom=connectivity
+
+    to...
+    #p oniom(B3LYP/6-31G*:external) geom=connectivity
+
+Once the Gaussian input file is configured to use an external software for the MM layer, you can use ``garleek-prepare`` to do everything else needed. For this system to work with MM3, you would use the following command::
+
+    garleek-prepare --qm gaussian_09d --mm tinker --ff MMFF --types uff_to_mm3 tutorial1.in
+
+- ``--qm`` lists the QM engine in use. By default it's ``gaussian_16``, so you don't have to specify it if that's the version you are using. In this case, we are using Gaussian 09D, so that's why we included it.
+
+- ``--mm`` lists the MM engine in use. Only TINKER is supported now, so you can omit it.
+
+- ``--ff`` specifies the forcefield to be used by TINKER. The file will be found following 3  strategies:
+
+    1. If the value is the path to a file, use it. This way you can use ``mycustomforcefield.prm`` or ``mycustomparameters.key``. Both TINKER PRM and KEY files are supported.
+    2. If no file is found with that path, try to find it under ``garleek/data/prm``. This allows you to use ``mm3.prm`` even if it's not present in the working directory.
+    3. Try again by adding the ``.prm`` extension. This allows you to use simply ``mm3``.
+
+- ``--types`` must be a file listing the correspondences between the atom types originally specified in the Gaussian input file, and those expected by Tinker. Since GaussView (or your favourite software) generated the types for UFF and we want to use MM3, the dictionary specified is ``uff_to_mmff``, which is included in Garleek and available in ``garleek/data/atom_types``. This option admits two types of values:
+
+    1. A valid path to a file
+    2. A filename under ``garleek/data/atom_types``.
+
+We will go into further details later. For now, we just need to know that this command would generate a file called ``tutorial1.garleek.in`` with these contents::
+
+    ! Created with Garleek v0+untagged.68.g6711cac.dirty
+    %nprocshared=8
+    %mem=8000MB
+    %chk=A_1
+    #p opt=nomicro oniom(B3LYP/6-31G*:external="garleek-backend --qm gaussian_09d --mm tinker --ff 'mmff'"/6-31G*) geom=connectivity
+
+    ONIOM(QM:MM) OPT FREQ with Garleek
+
+    0 1 0 1 0 1
+     C-1              0    0.44534414   -2.95546554    0.00000000 H
+     H-23             0    0.80199857   -3.96427554    0.00000000 H
+     H-23             0    0.80201698   -2.45106735    0.87365150 L H-23 1
+     H-23             0    0.80201698   -2.45106735   -0.87365150 H
+     H-23             0   -0.62465586   -2.95545236    0.00000000 H
+
+    1 2 1.0 3 1.0 4 1.0 5 1.0
+    2
+    3
+    4
+    5
+
+
+Let's see what has changed in this file.
+
+1. A new line beginning with an exclamation mark ``!`` has been added. This is just a comment (ignored by Gaussian) listing the garleek version used so you can reproduce the calculations later on with the exact same version.
+
+2. The route ``#`` section has grown significantly:
+
+    - ``opt=nomicro`` has been added. This disables microoptimizations, which can lead to known erorrs when applying the ``external`` keywords.
+    - ``external`` has a long string attached. This is the ``garleek-backend`` command that will be called in every Gaussian ONIOM iteration. It has been added automatically by ``garleek-prepare`` so you don't need to worry about its details.
+    - The basis set configured in the QM layer has been included in the MM layer as well. This is a workaround some errors with the default basis sets in Gaussian. Only applies for *exotic* elements, but since it doesn't hurt to have it specified here, it's always included for convenience.
+
+3. The atom types (``H_``, ``C_``) has been replaced by numbers (``23``, ``1``). This is a direct replacement as specified in the ``--types`` file and it's the key step in the whole process.
+
+03 - Review the atom types
+..........................
+
+Since this simple molecule only includes one carbon atom with its four hydrogen atoms, the conversion is trivial. UFF only includes one atom type per element, but that's very uncommon in most forcefields: they will list several atom types per element depending on its bonded atoms and other conditions.
+
+As a result, the conversion between UFF and other forcefields is not unequivocal. An effort has been made to provide the best correspondence for most cases, but you should check the types manually! You can define your own atom types mapping by modifying the ones provided with Garleek (creating a separate copy is recommended) or writing a new one from scratch. The syntax is very simple: one correspondence per line, listing the original atom type in the first field, and the TINKER atom type in the second field, separated by one or more spaces. Comments can be inserted with ``#`` in its own line or ending a valid line.
+
+For example, the ``uff_to_mm3`` file lists some correspondences between atomic numbers and default MM3 TINKER types::
+
+    # atomic number, mm3 type, description
+
+    1          5            # H_norm
+    2          51           # He
+    3          163          # Li
+    4          165          # Be
+    5          26           # B_sp2
+    6          1            # C_sp3
+    7          8            # N_sp3
+    8          6            # O_sp3
+    9          11           # F
+    10         52           # Ne
+
+04 - Launch the Gaussian job
+............................
+
+The resulting ``.garleek.in`` file is a valid Gaussian input file. You can run it with any standard procedures you are already using, like ``g09 tutorial2.garleek.in`` locally, or in a queued cluster system. Gaussian & Garleek will take care of the rest!
 
 Organometallic species
-......................
+----------------------
 
 WIP!
 
 Specific details for biomolecules
-.................................
+---------------------------------
 
 When biomolecules are involved in a QM/MM calculation, protein-specific forcefields are needed. Fortunately, TINKER `provides several forcefields <https://dasher.wustl.edu/tinker/distribution/params/>`_ that fall in this category:
 
@@ -34,7 +160,6 @@ When biomolecules are involved in a QM/MM calculation, protein-specific forcefie
 - OPLS-AA
 
 Protein-specific forcefields usually parametrize atoms and groups them by residue. In TINKER, each atom in each residue would be a different atom type (but similar ones are grouped in atom classes). This can lead to some confusion, because TINKER will be expecting atom types, not atom classes, in its XYZ input file (this is generated automatically by Garleek). The ``--types`` dictionary will have to unequivocally map residue-atom pairs to each unique atom type. To overcome this limitation, we follow an alternative typing approach for biostructures.
-
 
 .. tip::
 
@@ -59,13 +184,13 @@ You will see lines like these:
     H-H-0.000000(PDBName=H2,ResName=NGL,ResNum=1)      -1    0.26700000   20.00100000  -13.95200000 L
     H-H-0.000000(PDBName=H3,ResName=NGL,ResNum=1)      -1   -1.36000000   20.26700000  -13.90800000 L
     C-CX-0.000000(PDBName=CA,ResName=NGL,ResNum=1)     -1   -0.48000000   20.22400000  -12.02500000 L
-    H-HP-0.000000(PDBName=HA2,ResName=NGL,ResNum=1) -1 -1.50100000 20.04900000 -11.68700000 L
+    H-HP-0.000000(PDBName=HA2,ResName=NGL,ResNum=1)    -1   -1.50100000   20.04900000  -11.68700000 L
 
-Notice the first *word* it's still an atom identifier whose fields are separated by ``-`` characters:
+Notice the first *field* it's still an atom identifier whose subfields are separated by ``-`` characters:
 
-- 1st field: Element symbol. Sometimes, atomic number.
-- 2nd field: Atom type.
-- 3rd field: Charge, ``PDB`` fields.
+- 1st subfield: Element symbol. Sometimes, atomic number.
+- 2nd subfield: Atom type.
+- 3rd subfield: Charge, ``PDB`` fields.
 
 ``PDB`` fields are **important** in Garleek because when this type of line is present, the atom type (2nd field) is IGNORED and a NEW one is computed on the fly, following this template: ``<ResName>_<PDBName>``. For example, the first line in the block above would generate an atom type named ``NGL_N``. The original ``N3`` will be IGNORED.
 
@@ -73,12 +198,19 @@ As a result, for the ``--types`` dictionaries to work with biomolecules, they mu
 
 We provide several mappings obtained automatically from TINKER forcefields featuring a ``biotype`` section using a custom script. However, for this to work, the biomolecule must include the correct ``PDBName`` and ``ResName`` values..
 
-.. note::
+**Link atoms**
 
-    Take into account that link atoms are also affected by this special treatment. You should choose link atoms with type according to its bonded atom. For example, if bonded atom is ``CB`` the correct H link atom should be ``HB``. Refer to the PRM forcefield to locate it.
+Link atoms are also affected by this special treatment. If PDB fields are present, the link atom type will be composed out of the main atom ``ResName`` and the atom type listed next to the link atom element. For example, in the line::
+
+    H-HP-0.000000(PDBName=HA2,ResName=NGL,ResNum=1) -1 -1.50100000 20.04900000 -11.68700000 L H-HB 5
+
+, the calculated link atom type would be ``NGL_HB``.
+
+
+You should choose link atoms with type according to its bonded atom to avoid parameter problems (angles and dihedrals, particularly). For example, if the main atom is ``CB`` the correct H link atom should be ``HB``. Refer to the PRM forcefield to locate the proper type (PDBName).
 
 Custom residues
-~~~~~~~~~~~~~~~
+...............
 
 When custom residues are present in the structure, even in the QM region, they must be included for the MM calculation anyways. Using them is no harder than normal residues, but parameters must be present either in the PRM file or in a custom KEY file. Then, the normal atom type conversion rules will be followed to locate the proper TINKER atom type from the PDB fields.
 

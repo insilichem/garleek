@@ -9,18 +9,21 @@ for compatible programs.
     |    *And for to drynken strong wyn, reed as blood.*
     |    -- **Geoffrey Chaucer**
 
-Table of contents
-=================
-
 .. toctree::
     :maxdepth: 1
+    :caption: User guide
 
     intro.rst
     install.rst
     usage.rst
-    tutorials.rst
     developers.rst
     support.rst
+
+.. toctree::
+    :maxdepth: 2
+    :caption: Tutorials
+
+    tutorials.rst
 
 
 
