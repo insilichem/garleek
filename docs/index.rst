@@ -1,6 +1,9 @@
 Welcome to Garleek's documentation!
 ===================================
 
+.. image:: _static/images/garleek.png
+
+
 Garleek allows you to perform QM/MM calculations by interfacing Gaussian
 with MM programs via its ``external`` keyword. See :ref:`supported-software`
 for compatible programs.
@@ -24,7 +27,6 @@ for compatible programs.
     :caption: Tutorials
 
     tutorials.rst
-
 
 
 Indices and tables

@@ -1,6 +1,8 @@
 Garleek: QM/MM for humans
 =========================
 
+.. image:: docs/_static/images/garleek.png
+
 Garleek allows you to perform QM/MM calculations by interfacing Gaussian with MM programs via its ``external`` keyword.
 
     |    *Wel loved he garleek, oynons, and eek lekes,*
