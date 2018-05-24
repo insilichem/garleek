@@ -1,9 +1,9 @@
-Garleek: QM/MM for humans
-=========================
+Garleek: An extra flavor to ONIOM
+=================================
 
 .. image:: docs/_static/images/garleek.png
 
-Garleek allows you to perform QM/MM calculations by interfacing Gaussian with MM programs via its ``external`` keyword.
+Garleek (recursive acronym for  *Garleek is Automated Resources for Layered Energies using External Keyword*) allows you to perform QM/MM calculations by interfacing Gaussian with MM programs via its ``external`` keyword.
 
     |    *Wel loved he garleek, oynons, and eek lekes,*
     |    *And for to drynken strong wyn, reed as blood.*

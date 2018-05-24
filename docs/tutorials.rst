@@ -9,7 +9,7 @@ Organic species are easy to model, but with ONIOM there's always the added diffi
 
 .. tip::
 
-    The ``tests/data/`` directory in the Garleek source contains several toy examples that are easy and fast to compute. Use them for your own tests and training!
+    The ``tests/data/`` directory in the `Garleek source <https://github.com/insilichem/garleek/tree/master/tests/data>`_ contains several toy examples that are easy and fast to compute. Use them for your own tests and training!
 
 01 - Build the input file
 .........................
@@ -53,15 +53,7 @@ This file will run just fine in Gaussian, but it will use the simple UFF forcefi
 02 - Patch the input file with Garleek
 ......................................
 
-The file as created by GaussView needs some modifications to work with Garleek. First thing you must do is change the MM layer in the ONIOM keyword. For Garleek to work, the ``external`` keyword must be set as the MM layer. In this case, you would need to make this change::
-
-    From...
-    #p oniom(B3LYP/6-31G*:UFF) geom=connectivity
-
-    to...
-    #p oniom(B3LYP/6-31G*:external) geom=connectivity
-
-Once the Gaussian input file is configured to use an external software for the MM layer, you can use ``garleek-prepare`` to do everything else needed. For this system to work with MM3, you would use the following command::
+The file as created by GaussView needs some modifications to work with Garleek. Don't worry, ``garleek-prepare`` will do everything for you! For this system to work with MM3, you would use the following command::
 
     garleek-prepare --qm gaussian_09d --mm tinker --ff MMFF --types uff_to_mm3 tutorial1.in
 
@@ -69,7 +61,7 @@ Once the Gaussian input file is configured to use an external software for the M
 
 - ``--mm`` lists the MM engine in use. Only TINKER is supported now, so you can omit it.
 
-- ``--ff`` specifies the forcefield to be used by TINKER. The file will be found following 3  strategies:
+- ``--ff`` specifies the forcefield to be used by TINKER. The file will be found following 3 strategies:
 
     1. If the value is the path to a file, use it. This way you can use ``mycustomforcefield.prm`` or ``mycustomparameters.key``. Both TINKER PRM and KEY files are supported.
     2. If no file is found with that path, try to find it under ``garleek/data/prm``. This allows you to use ``mm3.prm`` even if it's not present in the working directory.
@@ -146,7 +138,37 @@ The resulting ``.garleek.in`` file is a valid Gaussian input file. You can run i
 Organometallic species
 ----------------------
 
-WIP!
+QM/MM studies are particularly useful in metal-containing systems. However, some metal elements are rarely present in MM forcefields and custom parameters must be provided (especially if coordination bonds are considered in the MM part). Fortunately, most of the time you can provide an isolated metal ion (no explicit bonds for the MM calculation) and get away with providing the van der Waals radius.
+
+Let's take the following Osmium compound as an example. Go to `tests/data/Os <https://github.com/insilichem/garleek/tree/master/tests/data/Os>`_ and grab a copy of the ``Os.in`` and ``Os.key`` files. This file can be fed to ``garleek-prepare`` to provided a Garleek-ready ``Os.garleek.in`` file.
+
+    garleek-prepare --types uff_to_mm3 --ff Os.key Os.in
+
+Several considerations must be done here:
+
+- ``--types`` has been set to ``uff_to_mm3``. This file is provided with Garleek, and contains a manual mapping listing UFF to MM3 correspondences. In most cases, it should work for your needs, but you are encouraged to review the choices made in that file so they fit your system.
+- ``--ff`` has been set to ``Os.key``. The ``ff`` flag can be set to either PRM or KEY files.
+
+KEY files are important in Tinker and can help you perform a lot of calculations. We use them to load default parameters from PRM files and include additional parameters on case-by-case basis. In this example, the forcefield has been set to ``qmmm3.prm``. This PRM file ships with Garleek. It's an extension of the original Tinker MM3 parameters to contain atom type definitions for most elements in the periodic table (transition metals included). However, it does not contain bond, angle or dihedral parametrization. Only the element masses and VdW radii are included, so you can only use ISOLATED metal ions. If you want to use bonded MM metals, you will need to provide those parameters. The KEY file includes this data below the ``parameters`` line::
+
+    parameters qmmm3.prm
+
+    # Define bond parameters
+    bond      7        165      0.3           1.67
+    bond      8        5        6.420         1.0150
+    # Define bond angle parameters
+    angle     7        165      7             0.5       90.0
+    angle     6        2        37            0.6       120.0
+    angle     5        8        5             0.605     106.40
+    # Define torsion parameters
+    torsion   2   1    6    2         0.0  0.0 1    0.0 180.0 2     0.403 0.0 3
+    torsion   6   2    37   37        0.0  0.0 1   12.0 180.0 2     0.0   0.0 3
+    torsion   1   6    2    37        1.05 0.0 1    7.5 180.0 2    -0.2   0.0 3
+
+Should you need more atom types, you can define those in your KEY file and provide that as the ``--ff`` value instead of a generic PRM file. For example, if you want to use the Amber99 forcefield with an aluminium atom, you should include two changes:
+
+- The ``-ff`` should be a KEY file with the amber forcefield loaded with the ``parameters`` keyword and a new atom definition for the aluminium ion with an atom type id of your choice. Let's say ``5000``. Van der Waals data should be added as well for that atom type id.
+- The ``--types`` file should list a line with ``13 5000``, where ``13`` is the Al atomic number and ``5000`` is the Tinker atom type. You an use any atom type label in the original Gaussian file (ie, ``Al-ALX``), but since Garleek will try to use the atomic number if the atom type label (``ALX``) cannot be found in the ``--types`` file, using the atomic number (``13``) works just fine as a generic fallback.
 
 Specific details for biomolecules
 ---------------------------------
@@ -194,9 +216,13 @@ Notice the first *field* it's still an atom identifier whose subfields are separ
 
 ``PDB`` fields are **important** in Garleek because when this type of line is present, the atom type (2nd field) is IGNORED and a NEW one is computed on the fly, following this template: ``<ResName>_<PDBName>``. For example, the first line in the block above would generate an atom type named ``NGL_N``. The original ``N3`` will be IGNORED.
 
-As a result, for the ``--types`` dictionaries to work with biomolecules, they must include the adequate ``<ResName>_<PDBName>`` combination, and not the 2nd field as seen in the previous tutorials. Obviouslt, the originating PDB file must have atoms and residues properly named so the PDB fields are correctly written. Otherwise, it won't work.
+As a result, for the ``--types`` dictionaries to work with biomolecules, they must include the adequate ``<ResName>_<PDBName>`` combination, and not the 2nd field as seen in the previous tutorials. Obviously, the originating PDB file must have atoms and residues properly named so the PDB fields are correctly written. Otherwise, it won't work.
 
-We provide several mappings obtained automatically from TINKER forcefields featuring a ``biotype`` section using a custom script. However, for this to work, the biomolecule must include the correct ``PDBName`` and ``ResName`` values..
+We provide several mappings obtained automatically from TINKER forcefields featuring a ``biotype`` section using a custom script. However, for this to work, the biomolecule must include the correct ``PDBName`` and ``ResName`` values.
+
+.. tip::
+
+    A script named ``biotyper.py`` can be found under ``garleek/data/prm``. This script can parse PRM files for ``biotype`` lines and generate a ``.types`` file automatically, which would work as a good starting point towards configuring your own atom types mapping.
 
 **Link atoms**
 
@@ -206,8 +232,8 @@ Link atoms are also affected by this special treatment. If PDB fields are presen
 
 , the calculated link atom type would be ``NGL_HB``.
 
-
 You should choose link atoms with type according to its bonded atom to avoid parameter problems (angles and dihedrals, particularly). For example, if the main atom is ``CB`` the correct H link atom should be ``HB``. Refer to the PRM forcefield to locate the proper type (PDBName).
+
 
 Custom residues
 ...............
