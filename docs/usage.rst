@@ -16,8 +16,8 @@ Usually, ``garleek-prepare`` will inject the necessary ``garleek-backend`` calls
 - ``INPUTFILE``: QM input file to be patched and renamed. For example, ``file.in`` would be renamed as ``file.garleek.in``.
 - ``--qm``: QM program handling the QM/MM calculation. Currently supported keywords include: *gaussian*, *gaussian_09a*, *gaussian_09b*, *gaussian_09c*, *gaussian_09d*, *gaussian_16*
 - ``--mm``: MM engine to be used. Currently supported keywords include: *tinker*.
-- ``--ff``: forcefield to be used in the MM calculation. Supported files and keywords depend on the value of ``mm``.
-- ``--types``: dictionary handling the conversion between the QM-provided atom types and those the MM engine actually needs for the chosen forcefield. Supported files and keywords depend on the value of ``mm`` and ``qm``. Usually is a simple two-column plain-text file that containts ``QM-type MM-type`` mappings. This file is used to replace the original types in ``MyInputFile.in``. Matching is case-insensitive, but the file must list them ALWAYS uppercased.
+- ``--ff``: force field to be used in the MM calculation. Supported files and keywords depend on the value of ``mm``.
+- ``--types``: dictionary handling the conversion between the QM-provided atom types and those the MM engine actually needs for the chosen force field. Supported files and keywords depend on the value of ``mm`` and ``qm``. Usually is a simple two-column plain-text file that contains ``QM-type MM-type`` mappings. This file is used to replace the original types in ``MyInputFile.in``. Matching is case-insensitive, but the file must list them ALWAYS uppercased.
 
 **TIP**: Updated CLI arguments will be always available if you run ``garleek-prepare -h``.
 
