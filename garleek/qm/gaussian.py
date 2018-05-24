@@ -32,7 +32,7 @@ class GaussianPatcher(object):
         self.version = version
         self.basis_patch = None
 
-        self._external_rx = r'#.*oniom=?\(\w+\/([^\s:/]+):(external(=?("[^"]+"|\w+)))(\/\S+)?\).*'
+        self._external_rx = r'#.*oniom=?\(\w+\/([^\s:/]+):((external|amber|uff|dreiding)(=?("[^"]+"|\w+))?)(\/\S+)?\).*'
         self._opt_rx = r'#.*((opt\w*)=?\(?([^\s\)]+)?\)?).*'
 
     def _is_route(self, line):
@@ -43,7 +43,7 @@ class GaussianPatcher(object):
         if not matches:
             return line
         basis_patch = matches.group(1)
-        mm_basis = matches.group(5)
+        mm_basis = matches.group(6)
         if basis_patch and mm_basis is None:
             gen = '/gen' if basis_patch.lower() in ('gen', 'genecp') else '/' + basis_patch
             self.basis_patch = basis_patch.lower()
@@ -139,7 +139,7 @@ class GaussianPatcher(object):
                 elif len(blocks) > 3 and line.strip() == '****' and len(blocks)-1 not in basis_index:
                     basis_index.append(len(blocks) - 1)
                 blocks[-1].append(orig_line)
-        
+
         if errors:
             print('! One or more errors were found. Patching will continue, but the calculation will probably fail')
             print(*errors, sep='\n')
