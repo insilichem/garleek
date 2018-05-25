@@ -34,15 +34,14 @@ part is configured with the ``external`` keyword, which specifies that the MM
 calculations will be performed with an external program. In this mode, Gaussian
 will write a series of files to disk and call the requested program.
 
-In this case, it's ``garleek-backend``. which will take one of the files Gaussian
+In this case, it's ``garleek-backend``, which will take one of the files Gaussian
 generates in each iteration (the ``*.EIn`` file), transform it and pass it to TINKER
 binaries to obtain the requested data: potential energy, dipole moment, polarizability
-and/or hessian matrix, depending on the calculation.
+and/or hessian matrix, depending on the calculation. Gaussian expects these data written
+back to an ``*.EOu`` file in a `very specific format <http://gaussian.com/external/>`_.
 
-Gaussian expects these data written back to an ``*.EOu`` file with a well-defined format.
-
-So, this is what Garleek does: interfacing Gaussian and TINKER following Gaussian
-``external`` conventions:
+In a nutshell, all Garleek does is interfacing Gaussian and TINKER following the
+``external`` protocol:
 
 1. Parse Gaussian's ``EIn`` files
 2. Convert to whatever the MM engine is expecting
@@ -55,5 +54,5 @@ the MM engine. Since this is rarely the case, a previous step is needed: patchin
 original Gaussian file so it contains adequate atom types. We take advantage of this step
 to inject the correct ``garleek-backend`` calls in the ``external`` keyword so the user
 does not have to worry about those details. For further information on the practical usage,
-please read our :ref:`tutorials` section!
+please read our Tutorials section. First one: :ref:`tutorials`.
 

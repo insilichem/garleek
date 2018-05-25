@@ -170,6 +170,70 @@ Should you need more atom types, you can define those in your KEY file and provi
 - The ``-ff`` should be a KEY file with the amber force field loaded with the ``parameters`` keyword and a new atom definition for the aluminium ion with an atom type id of your choice. Let's say ``5000``. Van der Waals data should be added as well for that atom type id.
 - The ``--types`` file should list a line with ``13 5000``, where ``13`` is the Al atomic number and ``5000`` is the Tinker atom type. You an use any atom type label in the original Gaussian file (ie, ``Al-ALX``), but since Garleek will try to use the atomic number if the atom type label (``ALX``) cannot be found in the ``--types`` file, using the atomic number (``13``) works just fine as a generic fallback.
 
+Custom basis sets
+.................
+
+When dealing with metals, custom basis sets might be needed. This usually accomplished with the ``gen`` or ``genecp`` options in the route section and specifying the basis sets and pseudopotentials after the connectivity matrix. When using ``external`` as the MM part in the ONIOM calls, the basis must be provided for the MM part as well. This means that the ONIOM call should be like this::
+
+    ONIOM(B3LYP/genecp:external="garleek-backend ..."/gen)
+
+Instead of specifying the basis sets and pseudopotentials once, they must be specified separately for each QM and MM calculation. This means that, instead of having these lines (QM part only)::
+
+    Os 0
+    LanL2DZ
+    ****
+    O 0
+    6-31G*
+    ****
+    C H N 0
+    6-31G
+    ****
+
+    Os 0
+    LanL2DZ
+
+You will need these (MM basis sets, QM basis sets & pseudopotentials, MM basis sets again)::
+
+    ! Lines starting with exclamation marks are comments and can be ignored
+    ! MM basis sets
+    Os 0
+    LanL2DZ
+    ****
+    O 0
+    6-31G*
+    ****
+    C H N 0
+    6-31G
+    ****
+
+    ! QM basis sets
+    Os 0
+    LanL2DZ
+    ****
+    O 0
+    6-31G*
+    ****
+    C H N 0
+    6-31G
+    ****
+
+    ! QM pseudopotentials
+    Os 0
+    LanL2DZ
+
+    ! MM basis sets
+    Os 0
+    LanL2DZ
+    ****
+    O 0
+    6-31G*
+    ****
+    C H N 0
+    6-31G
+    ****
+
+``garleek-prepare`` will try to detect the basis sets and pseudopotentials  if the ``ONIOM`` keyword contains the ``genecp`` or ``gen`` options, and fill the MM basis sets automatically, so you don't worry about these technicalities. However, if somehow it fails, you will need to review those lines so Gaussian can find the proper basis sets.
+
 Specific details for biomolecules
 ---------------------------------
 

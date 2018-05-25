@@ -24,4 +24,4 @@ Usually, ``garleek-prepare`` will inject the necessary ``garleek-backend`` calls
 
 .. note::
 
-    For more details and specific use-cases, please refer to our :ref:`tutorials` section.
+    For more details and specific use-cases, please refer to the tutorials section. Begin with the first one by clicking here: :ref:`tutorials`.
