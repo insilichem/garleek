@@ -1,9 +1,9 @@
-The following tutorials assume you have already installed Garleek, Gaussian and TINKER. If that's not the case, please refer to :ref:`installation`.
+The following tutorials assume you have already installed Garleek, Gaussian and Tinker. If that's not the case, please refer to :ref:`installation`.
 
 .. _tutorials:
 
-A simple CH4 molecule
----------------------
+A simple CH\ :sub:`4` molecule
+------------------------------
 
 Organic species are easy to model, but with ONIOM there's always the added difficulty of setting up layers, link atoms and so on. This simple example will help describe the general workflow for setting up a two-layer QM:MM ONIOM job in GaussView.
 
@@ -14,7 +14,7 @@ Organic species are easy to model, but with ONIOM there's always the added diffi
 01 - Build the input file
 .........................
 
-In GaussView or any similar software build a CH4 molecule and create and B3LYP/UFF ONIOM input file named ``tutorial1.in``. You should obtain something like this::
+In GaussView or any similar software build a CH\ :sub:`4` molecule and create and B3LYP/UFF ONIOM input file named ``tutorial1.in``. You should obtain something like this::
 
     %nprocshared=8
     %mem=8000MB
@@ -59,11 +59,11 @@ The file as created by GaussView needs some modifications to work with Garleek. 
 
 - ``--qm`` lists the QM engine in use. By default it's ``gaussian_16``, so you don't have to specify it if that's the version you are using. In this case, we are using Gaussian 09D, so that's why we included it.
 
-- ``--mm`` lists the MM engine in use. Only TINKER is supported now, so you can omit it in this example.
+- ``--mm`` lists the MM engine in use. Only Tinker is supported now, so you can omit it in this example.
 
-- ``--ff`` specifies the force field to be used by TINKER. The file will be found following 3 strategies:
+- ``--ff`` specifies the force field to be used by Tinker. The file will be found following 3 strategies:
 
-    1. If the value is the path to a file, use it. This way you can use ``mycustomforce field.prm`` or ``mycustomparameters.key``. Both TINKER PRM and KEY files are supported.
+    1. If the value is the path to a file, use it. This way you can use ``mycustomforce field.prm`` or ``mycustomparameters.key``. Both Tinker PRM and KEY files are supported.
     2. If no file is found with that path, try to find it under ``garleek/data/prm``. This allows you to use ``mm3.prm`` even if it's not present in the working directory.
     3. Try again by adding the ``.prm`` extension. This allows you to use simply ``mm3``.
 
@@ -113,9 +113,9 @@ Let's see what has changed in this file.
 
 Since this simple molecule only includes one carbon atom with its four hydrogen atoms, the conversion is trivial. UFF only includes one (or very few) atom type(s) per element, but that's very uncommon in most force fields: they normally list several atom types per element depending on its bonded atoms and other conditions.
 
-As a result, the conversion between UFF and other force fields is not unequivocal. An effort has been made to provide the best correspondence for most cases, but you should check the types manually! You can define your own atom types mapping by modifying the ones provided with Garleek (creating a separate copy is recommended) or writing a new one from scratch. The syntax is very simple: one correspondence per line, listing the original atom type in the first field, and the TINKER atom type in the second field, separated by one or more spaces. Comments can be inserted with ``#`` in its own line or ending a valid line.
+As a result, the conversion between UFF and other force fields is not unequivocal. An effort has been made to provide the best correspondence for most cases, but you should check the types manually! You can define your own atom types mapping by modifying the ones provided with Garleek (creating a separate copy is recommended) or writing a new one from scratch. The syntax is very simple: one correspondence per line, listing the original atom type in the first field, and the Tinker atom type in the second field, separated by one or more spaces. Comments can be inserted with ``#`` in its own line or ending a valid line.
 
-For example, the ``uff_to_mm3`` file lists some correspondences between atomic numbers and default MM3 TINKER types::
+For example, the ``uff_to_mm3`` file lists some correspondences between atomic numbers and default MM3 Tinker types::
 
     # atomic number, mm3 type, description
 
@@ -237,7 +237,7 @@ You will need these (MM basis sets, QM basis sets & pseudopotentials, MM basis s
 Specific details for biomolecules
 ---------------------------------
 
-When biomolecules are involved in a QM/MM calculation, protein-specific force fields are needed. Fortunately, TINKER `provides several force fields <https://dasher.wustl.edu/tinker/distribution/params/>`_ that fall in this category:
+When biomolecules are involved in a QM/MM calculation, protein-specific force fields are needed. Fortunately, Tinker `provides several force fields <https://dasher.wustl.edu/tinker/distribution/params/>`_ that fall in this category:
 
 - AMBER 94, 96, 98, 99, 99SB
 - AMOEBABIO & AMOEBAPRO
@@ -245,11 +245,11 @@ When biomolecules are involved in a QM/MM calculation, protein-specific force fi
 - MM3PRO
 - OPLS-AA
 
-Protein-specific force fields usually parameterize atoms and groups them by residue. In TINKER, each atom in each residue would be a different atom type (but similar ones are grouped in atom classes). This can lead to some confusion, because TINKER will be expecting atom types, not atom classes, in its XYZ input file (this is generated automatically by Garleek). The ``--types`` dictionary will have to unequivocally map residue-atom pairs to each unique atom type. To overcome this limitation, we follow an alternative typing approach for biostructures.
+Protein-specific force fields usually parameterize atoms and groups them by residue. In Tinker, each atom in each residue would be a different atom type (but similar ones are grouped in atom classes). This can lead to some confusion, because Tinker will be expecting atom types, not atom classes, in its XYZ input file (this is generated automatically by Garleek). The ``--types`` dictionary will have to unequivocally map residue-atom pairs to each unique atom type. To overcome this limitation, we follow an alternative typing approach for biostructures.
 
 .. tip::
 
-    To prepare a protein structure, using separate software like UCSF Chimera with our Tangram suite is recommended. This will take care of some annoying details that have to do with atom typing, like adding hydrogen atoms and terminal caps should be added, or fixing residue and atom names, and generate the properly formatted Gaussian input file Garleek expects.
+    To prepare a protein structure, using separate software like UCSF Chimera with our `Tangram suite <http://tangram-suite.readthedocs.io>`_ is recommended. This will take care of some annoying details that have to do with atom typing, like adding hydrogen atoms and terminal caps, fixing residue and atom names, and will also generate the properly formatted Gaussian input file Garleek expects.
 
 When the protein structure is properly formatted, you should obtain a PDB file that can be loaded into GaussView. Instead of having atom lines like these:
 
@@ -282,7 +282,7 @@ Notice the first *field* it's still an atom identifier whose subfields are separ
 
 As a result, for the ``--types`` dictionaries to work with biomolecules, they must include the adequate ``<ResName>_<PDBName>`` combination, and not the 2nd field as seen in the previous tutorials. Obviously, the originating PDB file must have atoms and residues properly named so the PDB fields are correctly written. Otherwise, it won't work.
 
-We provide several mappings obtained automatically from TINKER force fields featuring a ``biotype`` section using a custom script. However, for this to work, the biomolecule must include the correct ``PDBName`` and ``ResName`` values.
+We provide several mappings obtained automatically from Tinker force fields featuring a ``biotype`` section using a custom script. However, for this to work, the biomolecule must include the correct ``PDBName`` and ``ResName`` values.
 
 .. tip::
 
@@ -302,7 +302,7 @@ You should choose link atoms with type according to its bonded atom to avoid par
 Custom residues
 ...............
 
-When custom residues are present in the structure, even in the QM region, they must be included for the MM calculation anyways. Using them is no harder than normal residues, but parameters must be present either in the PRM file or in a custom KEY file. Then, the normal atom type conversion rules will be followed to locate the proper TINKER atom type from the PDB fields.
+When custom residues are present in the structure, even in the QM region, they must be included for the MM calculation anyways. Using them is no harder than normal residues, but parameters must be present either in the PRM file or in a custom KEY file. Then, the normal atom type conversion rules will be followed to locate the proper Tinker atom type from the PDB fields.
 
 Toy example for a NH3 residue in the Amber format:
 
