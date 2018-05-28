@@ -59,7 +59,7 @@ The file as created by GaussView needs some modifications to work with Garleek. 
 
 - ``--qm`` lists the QM engine in use. By default it's ``gaussian_16``, so you don't have to specify it if that's the version you are using. In this case, we are using Gaussian 09D, so that's why we included it.
 
-- ``--mm`` lists the MM engine in use. Only TINKER is supported now, so you can omit it.
+- ``--mm`` lists the MM engine in use. Only TINKER is supported now, so you can omit it in this example.
 
 - ``--ff`` specifies the force field to be used by TINKER. The file will be found following 3 strategies:
 
@@ -111,7 +111,7 @@ Let's see what has changed in this file.
 03 - Review the atom types
 ..........................
 
-Since this simple molecule only includes one carbon atom with its four hydrogen atoms, the conversion is trivial. UFF only includes one atom type per element, but that's very uncommon in most force fields: they will list several atom types per element depending on its bonded atoms and other conditions.
+Since this simple molecule only includes one carbon atom with its four hydrogen atoms, the conversion is trivial. UFF only includes one (or very few) atom type(s) per element, but that's very uncommon in most force fields: they normally list several atom types per element depending on its bonded atoms and other conditions.
 
 As a result, the conversion between UFF and other force fields is not unequivocal. An effort has been made to provide the best correspondence for most cases, but you should check the types manually! You can define your own atom types mapping by modifying the ones provided with Garleek (creating a separate copy is recommended) or writing a new one from scratch. The syntax is very simple: one correspondence per line, listing the original atom type in the first field, and the TINKER atom type in the second field, separated by one or more spaces. Comments can be inserted with ``#`` in its own line or ending a valid line.
 
