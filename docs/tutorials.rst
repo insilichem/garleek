@@ -336,8 +336,8 @@ The ``--types`` dictionary should list:
 
 ::
 
-    UNK_N1 5000
-    UNK_H1 5001
-    UNK_H2 5002
-    UNK_H3 5003
+    NH3_N1 5000
+    NH3_H1 5001
+    NH3_H2 5002
+    NH3_H3 5003
 
