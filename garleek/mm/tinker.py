@@ -217,5 +217,29 @@ def run_tinker(xyz_data, n_atoms, key, energy=True, dipole_moment=True,
             raise ValueError(error.format('hessian', ' '.join(command), _decode(output)))
         results['hessian'] = hessian
 
+    inactive_indices = []
+    with open(key) as f:
+        for line in f:
+            if line.lower().startswith('inactive'):
+                inactive_indices.extend([int(i) for i in line.split()[1:]])
+
+    if inactive_indices:
+        results = patch_tinker_output_for_inactive_atoms(results, inactive_indices, n_atoms)
+
     os.remove(xyz)
+    return results
+
+
+def patch_tinker_output_for_inactive_atoms(results, indices, n_atoms):
+    """
+    TODO: Patch 'hessian' to support FREQ calculations with inactive
+    """
+    values = results['gradients']
+    shape = (n_atoms, 3)
+    idx = np.array(indices) - 1
+    filled = np.zeros(shape, dtype=values.dtype)
+    mask = np.ones(shape[0], np.bool)
+    mask[idx] = 0
+    filled[mask] = values
+    results['gradients'] = filled
     return results
