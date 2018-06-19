@@ -27,7 +27,8 @@ from .atom_types import parse as parse_atom_types
 from . import units as u
 
 
-def gaussian_tinker(qmargs, forcefield='mm3.prm', write_file=True, qm_version='16', **kwargs):
+def gaussian_tinker(qmargs, forcefield='mm3.prm', write_file=True, qm_version='16',
+                    mm_version=None, **kwargs):
     """
     Connects QM engine ``gaussian`` with MM engine ``tinker``.
 
@@ -66,6 +67,10 @@ def gaussian_tinker(qmargs, forcefield='mm3.prm', write_file=True, qm_version='1
         Gaussian version in use. Needed to cover the slight differences
         between Gaussian versions (EIn/EOu syntax, number of args, and so on).
 
+    mm_version : string, optional=None
+        TINKER behavior. If QM-charges must be considered for the MM
+        part, set it to 'qmcharges'
+
     Returns
     -------
     eou_data : str
@@ -80,8 +85,8 @@ def gaussian_tinker(qmargs, forcefield='mm3.prm', write_file=True, qm_version='1
     # Gaussian Input
     ein = parse_gaussian_EIn(ein_filename, version=qm_version)
     # TINKER inputs
-    xyz = prepare_tinker_xyz(ein['atoms'], ein['bonds'])
-    key = prepare_tinker_key(forcefield)
+    xyz = prepare_tinker_xyz(ein['atoms'], ein['bonds'], version=mm_version)
+    key = prepare_tinker_key(forcefield, atoms=ein['atoms'], version=mm_version)
     with_gradients = ein['derivatives'] > 0
     with_hessian = ein['derivatives'] == 2
     mm = run_tinker(xyz, n_atoms=ein['n_atoms'], key=key, energy=True, dipole_moment=True,

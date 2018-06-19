@@ -46,7 +46,7 @@ keys and values:
         - ``element`` : ``str``. Chemical element
         - ``type`` : ``str``. Atom type as expected by the MM part
         - ``xyz`` : ``np.array`` with shape (3,). Cartesian coordinates
-        - ``mm_charge`` : ``float``. Atom point charge for the MM part
+        - ``charge`` : ``float``. Atom point charge for the MM part
 
     bonds : OrderedDict of lists of 2-tuples
         Ordered dictionary mapping atom-index to a list of

@@ -11,13 +11,14 @@ Garleek - Tinker bridge
 from __future__ import print_function, absolute_import, division
 import os
 import sys
+import shutil
 from distutils.spawn import find_executable
 from subprocess import check_output
 from tempfile import NamedTemporaryFile
 import numpy as np
 from  .. import units as u
 
-supported_versions = '8.1',
+supported_versions = '8', '8.1', 'qmcharges'
 default_version = '8.1'
 
 tinker_testhess = os.environ.get('TINKER_TESTHESS') or find_executable('testhess')
@@ -25,7 +26,7 @@ tinker_analyze = os.environ.get('TINKER_ANALYZE') or find_executable('analyze')
 tinker_testgrad = os.environ.get('TINKER_TESTGRAD') or find_executable('testgrad')
 
 
-def prepare_tinker_xyz(atoms, bonds=None):
+def prepare_tinker_xyz(atoms, bonds=None, version=None):
     """
     Write a TINKER-style XYZ file. This is similar to a normal XYZ, but with more
     fields::
@@ -40,7 +41,8 @@ def prepare_tinker_xyz(atoms, bonds=None):
         Set of atoms to write, following convention defined in :mod:`garleek.qm`.
     bonds : OrderedDict
         Connectivity information, following convention defined in :mod:`garleek.qm`.
-
+    version : str, optional=None
+        Specific behavior flag, if needed. Like 'qmcharges'
     Returns
     -------
     xyzblock : str
@@ -61,18 +63,27 @@ def prepare_tinker_xyz(atoms, bonds=None):
     return '\n'.join(out)
 
 
-def prepare_tinker_key(forcefield):
+def prepare_tinker_key(forcefield, atoms=None, version=None):
     """
     Prepare a file ready for TINKER's -k option.
 
-    ``forcefield`` should be either a:
+    Parameters
+    ----------
+    forcefield : str
+        ``forcefield`` should be either a:
 
-    - ``*.prm``: proper forcefield file
-    - ``*.key``, ``*.par``: key file that can call ``*.prm files`` and
-      add more parameters
+        - ``*.prm``: proper forcefield file
+        - ``*.key``, ``*.par``: key file that can call ``*.prm files`` and
+        add more parameters
 
-    If a .prm file is provided, a .key file will be written to
-    accommodate the forcefield in a ``parameters *`` call.
+        If a .prm file is provided, a .key file will be written to
+        accommodate the forcefield in a ``parameters *`` call.
+    atoms : OrderedDict, optional=None
+        Set of atoms to write, following convention defined in :mod:`garleek.qm`.
+    version : str, optional=None
+        Specific behavior flag. Supports:
+        - ``qmcharges``, which would write charges provided by QM engine.
+          Needs ``atoms`` to be passed.
 
     Returns
     -------
@@ -82,12 +93,20 @@ def prepare_tinker_key(forcefield):
     if forcefield.lower().endswith('.prm'):
         with open('garleek.key', 'w') as f:
             print('parameters', os.path.abspath(forcefield), file=f)
-        return os.path.abspath('garleek.key')
+        keypath = os.path.abspath('garleek.key')
     elif os.path.splitext(forcefield)[1].lower() in ('.par', '.key'):
-        return os.path.abspath(forcefield)
+        keypath = os.path.abspath(forcefield)
     else:
         raise ValueError('TINKER key file must be .prm, .key or .par')
-
+    if version == 'qmcharges' and atoms:
+        keypath_original = keypath
+        keypath = os.path.splitext(keypath_original)[0] + '.charges.key'
+        shutil.copyfile(keypath_original, keypath)
+        with open(keypath, 'a') as f:
+            print('', file=f)
+            for index, atom in atoms.items():
+                print('CHARGE', -1 * index, atom['charge'], file=f)
+    return keypath
 
 def _decode(data):
     try:

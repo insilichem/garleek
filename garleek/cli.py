@@ -160,7 +160,7 @@ def _backend_args(argv=None):
     p.add_argument('--mm', type=str, default='tinker',
                    help='MM engine to use. Defaults to Tinker. '
                         'Versions after an underscore: <engine>_<version>, '
-                        'like tinker_8')
+                        'like tinker_8 or tinker_qmcharges')
     p.add_argument('--ff', type=_extant_file_prm, default='mmff.prm',
                    help='Forcefield to be used by the MM engine')
     # Arguments injected by the QM program
@@ -241,7 +241,7 @@ def _frontend_args(argv=None):
     p.add_argument('--mm', type=str, default='tinker',
                    help='MM engine to use. Defaults to Tinker. '
                         'Versions after an underscore: <engine>_<version>, '
-                        'like tinker_8')
+                        'like tinker_8 or tinker_qmcharges')
     p.add_argument('--ff', type=_extant_file_prm, default='mm3.prm',
                    help='Forcefield to be used by the MM engine')
     p.add_argument('--types', type=_extant_file_types, default='uff_to_mm3',

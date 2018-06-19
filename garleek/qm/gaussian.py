@@ -188,11 +188,11 @@ def parse_gaussian_EIn(ein_filename, version=default_version):
             fields = next(f).strip().split()
             atom_element = fields[0]
             atom_type = fields[5] if len(fields) == 6 else None
-            x, y, z, mm_charge = list(map(float, fields[1:5]))
+            x, y, z, charge = list(map(float, fields[1:5]))
             atoms[i+1] = {'element': atom_element,
                           'type': atom_type,
                           'xyz': np.array([x, y, z]),
-                          'mm_charge': mm_charge}
+                          'charge': charge}
 
         line = next(f)  # Skip the "connectivity" header
         has_bonds = False
