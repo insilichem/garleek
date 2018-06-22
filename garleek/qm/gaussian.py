@@ -184,15 +184,22 @@ def parse_gaussian_EIn(ein_filename, version=default_version):
     with open(ein_filename) as f:
         n_atoms, derivatives, charge, spin = list(map(int, next(f).split()))
         atoms = OrderedDict()
-        for i in range(n_atoms):
+        j = 0  # actual sequential index
+        atom_map = {}  # maps original indices to new sequential indices
+                       # only different if EmbedCharge == version
+        for i in range(n_atoms):  # original atom index
             fields = next(f).strip().split()
             atom_element = fields[0]
             atom_type = fields[5] if len(fields) == 6 else None
+            if atom_type.startswith('#'):
+                continue
             x, y, z, charge = list(map(float, fields[1:5]))
-            atoms[i+1] = {'element': atom_element,
-                          'type': atom_type,
-                          'xyz': np.array([x, y, z]),
-                          'charge': charge}
+            j += 1
+            atoms[j] = {'element': atom_element,
+                        'type': atom_type,
+                        'xyz': np.array([x, y, z]),
+                        'charge': charge}
+            atom_map[i+1] = j
 
         line = next(f)  # Skip the "connectivity" header
         has_bonds = False
@@ -210,9 +217,15 @@ def parse_gaussian_EIn(ein_filename, version=default_version):
             raise ValueError('`version` must be one of {}'.format(', '.join(supported_versions)))
         while line.strip():
             fields = line.strip().split()
-            bonds[int(fields[bond_index_pos])] = bond_list = []
-            for to_atom, bond_index in zip(fields[bond_list_pos::2], fields[bond_list_pos+1::2]):
-                bond_list.append((int(to_atom), float(bond_index)))
+            frombondindex = int(fields[bond_index_pos])
+            if frombondindex not in atom_map:
+                line = next(f, '')
+                continue
+            bonds[atom_map[frombondindex]] = bond_list = []
+            for to_atom, bond_order in zip(fields[bond_list_pos::2], fields[bond_list_pos+1::2]):
+                to_atom_int = int(to_atom)
+                if to_atom_int in atom_map:
+                    bond_list.append((atom_map[to_atom_int], float(bond_order)))
             line = next(f, '')
 
     return {'n_atoms': n_atoms,
