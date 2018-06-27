@@ -14,8 +14,8 @@ Frequently Asked Questions
 --------------------------
 
 
-Where can I found Gaussian's documentation for ``external`` keyword?
-....................................................................
+Where can I find Gaussian's documentation for ``external`` keyword?
+...................................................................
 
 Follow these links: `Gaussian v16 <http://gaussian.com/external>`_, `v09D <http://web.archive.org/web/20150906010704/http://www.gaussian.com/g_tech/g_ur/k_external.htm>`_,  `v09B <http://web.archive.org/web/20110806120317/http://www.gaussian.com/g_tech/g_ur/k_external.htm>`_,  `v03 <http://www.lct.jussieu.fr/manuels/Gaussian03/g_ur/k_external.htm>`_
 
@@ -24,6 +24,13 @@ Why don't you support more MM software?
 .......................................
 
 Please, follow the ongoing discussion `in this issue <https://github.com/insilichem/garleek/issues/1>`_. PRs are welcome!
+
+
+Does Garleek support electronic embedding?
+..........................................
+
+Yes, as of v0.3, Garleek supports electronic embedding if you use the ``EmbedCharge`` option in the ``ONIOM`` keyword of the Gaussian input file. Differences in the ``EIn`` files are handled automatically.
+
 
 Common Garleek/Gaussian/Tinker errors
 .....................................
