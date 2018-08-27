@@ -341,3 +341,7 @@ The ``--types`` dictionary should list:
     NH3_H2 5002
     NH3_H3 5003
 
+Electronic embedding
+....................
+
+For biological systems, electronic embedding is usually recommended. Garleek supports this mode (`ONIOM=EmbedCharge`) out of the box, so no additional configuration is needed. That said, read `Gaussian documentation on ONIOM <http://gaussian.com/oniom/>`_ for notes on possible convergence problems.
