@@ -25,11 +25,11 @@ elif [[ $GAUSSIAN_VERSION == 'g09c' ]]; then
 elif [[ $GAUSSIAN_VERSION == 'g09d' ]]; then
     module load g09_D.01_pgi11.9-ISTANBUL
 elif [[ $GAUSSIAN_VERSION == 'g09local' ]]; then
-    export g09root="$HOME/.local/g09/E6L-103X"
-    export GAUSS_EXEDIR="$HOME/.local/g09/E6L-103X/g09"
-    export LD_LIBRARY_PATH="$HOME/.local/g09/E6L-103X/g09:$LD_LIBRARY_PATH"
+    export g09root="/opt/g09/E6L-103X"
+    export GAUSS_EXEDIR="/opt/g09/E6L-103X/g09"
+    export LD_LIBRARY_PATH="/opt/g09/E6L-103X/g09:$LD_LIBRARY_PATH"
     export TMPDIR="$HOME/tmp/scratch"
-    export PATH="$PATH:$HOME/.local/g09/E6L-103X/g09"
+    export PATH="$PATH:/opt/g09/E6L-103X/g09"
 elif [[ $GAUSSIAN_VERSION == 'g16' ]]; then
     module load g16
 fi
