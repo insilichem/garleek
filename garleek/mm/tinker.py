@@ -108,6 +108,7 @@ def prepare_tinker_key(forcefield, atoms=None, version=None):
                 print('CHARGE', -1 * index, atom['charge'], file=f)
     return keypath
 
+
 def _decode(data):
     try:
         return data.decode()
@@ -122,12 +123,12 @@ def _parse_tinker_analyze(data):
     components (debyes).
     """
     energy, dipole = None, None
-    for line in _decode(data).splitlines():
+    for line in data.splitlines():
         line = line.strip()
         if line.startswith('Total Potential Energy'):
-            energy = float(line.split()[4])
+            energy = float(line[26:49])
         elif line.startswith('Dipole X,Y,Z-Components'):
-            dipole = list(map(float, line.split()[3:6]))
+            dipole = list(map(float, [line[26:49], line[49:62], line[62:75]]))
             break
     return energy, np.array(dipole)
 
@@ -137,23 +138,22 @@ def _parse_tinker_testgrad(data):
 
     """
     gradients = []
-    lines = _decode(data).splitlines()
+    lines = data.splitlines()
     for i, line in enumerate(lines):
         line = line.strip()
         if line.startswith('Cartesian Gradient Breakdown over Individual Atoms'):
             break
 
     for line in lines[i+4:]:
-        line = line.strip()
-        if not line or line.startswith('Total Gradient'):
+        if not line.strip() or line.startswith('Total Gradient'):
             break
-        fields = line.split()
-        gradients.append(list(map(float, fields[2:5])))
+        fields = line[16:35], line[35:47], line[47:59]
+        gradients.append(list(map(float, fields)))
 
     return np.array(gradients)
 
 
-def _parse_tinker_testhess(hesfile, n_atoms):
+def _parse_tinker_testhess(hesfile, n_atoms, remove=False):
     """
 
     """
@@ -161,34 +161,33 @@ def _parse_tinker_testhess(hesfile, n_atoms):
     xyz_to_int = {'X': 0, 'Y': 1, 'Z': 2}
     with open(hesfile) as lines:
         for line in lines:
-            line = line.strip()
-            if not line:
+            if not line.strip():
                 continue
-            elif line.startswith('Diagonal'):
-                _, line = next(lines), next(lines).strip()  # skip blank line
-                block = []
-                while line:
-                    block.append(line)
-                    line = next(lines).strip()
-                nums = list(map(float, ' '.join(block).split()))
-                for i, num in enumerate(nums):
+            elif line.startswith(' Diagonal'):
+                _, line = next(lines), next(lines).rstrip()  # skip blank line
+                nums = []
+                while line.strip():
+                    nums.extend(filter(bool, [line[:12], line[12:24], line[24:36],
+                                              line[36:48], line[48:60], line[60:72]]))
+                    line = next(lines).rstrip()
+                for i, num in enumerate(map(float, nums)):
                     hessian[i, i] = num
-            elif line.startswith('Off-diagonal'):
-                fields = line.split()
-                atom_pos, axis_pos = int(fields[-2])-1, xyz_to_int[fields[-1]]
-                _, line = next(lines), next(lines).strip()  # skip blank line
-                block = []
-                while line:
-                    block.append(line)
+            elif line.startswith(' Off-diagonal'):
+                atom_pos, axis_pos = int(line[39:45])-1, xyz_to_int[line[46:47]]
+                _, line = next(lines), next(lines).rstrip() # skip blank line
+                nums = []
+                while line.strip():
+                    nums.extend(filter(bool, [line[:12], line[12:24], line[24:36],
+                                              line[36:48], line[48:60], line[60:72]]))
                     try:
-                        line = next(lines).strip()
+                        line = next(lines).rstrip()
                     except StopIteration:
                         break
-                nums = list(map(float, ' '.join(block).split()))
                 j = 3*atom_pos+axis_pos
-                for i, num in enumerate(nums):
+                for i, num in enumerate(map(float, nums)):
                     hessian[i+j+1, j] = num
-    os.remove(hesfile)
+    if remove:
+        os.remove(hesfile)
     return hessian
 
 
@@ -208,7 +207,7 @@ def run_tinker(xyz_data, n_atoms, key, energy=True, dipole_moment=True,
         args = ','.join(['E' if energy else '', 'M' if dipole_moment else ''])
         command = [tinker_analyze, xyz, '-k', key, args]
         print('Running TINKER:', *command)
-        output = check_output(command)
+        output = _decode(check_output(command))
         energy, dipole = _parse_tinker_analyze(output)
         if energy is None:
             raise ValueError(error.format('energy', ' '.join(command), _decode(output)))
@@ -220,7 +219,7 @@ def run_tinker(xyz_data, n_atoms, key, energy=True, dipole_moment=True,
     if gradients:
         command = [tinker_testgrad, xyz, '-k', key,  'y', 'n', '0.1D-04']
         print('Running TINKER:', *command)
-        output = check_output(command)
+        output = _decode(check_output(command))
         gradients = _parse_tinker_testgrad(output)
         if gradients is None:
             raise ValueError(error.format('gradients', ' '.join(command), _decode(output)))
@@ -229,9 +228,9 @@ def run_tinker(xyz_data, n_atoms, key, energy=True, dipole_moment=True,
     if hessian:
         command = [tinker_testhess, xyz, '-k', key, 'y', 'n']
         print('Running TINKER:', *command)
-        output = check_output(command)
+        output = _decode(check_output(command))
         hesfile = os.path.splitext(xyz)[0] + '.hes'
-        hessian = _parse_tinker_testhess(hesfile, n_atoms)
+        hessian = _parse_tinker_testhess(hesfile, n_atoms, remove=True)
         if hessian is None:
             raise ValueError(error.format('hessian', ' '.join(command), _decode(output)))
         results['hessian'] = hessian
